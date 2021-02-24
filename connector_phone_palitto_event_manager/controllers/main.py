@@ -18,8 +18,10 @@ class PCSVOIP(http.Controller):
         "/palitto/incomingCall", type="http", auth="public", website=True, sitemap=False
     )
     def pcs_incoming_calls(self, *args, **kw):
-        user = request.env["res.users"].search(
-            [("phone", "=", kw.get("CallerID"))], limit=1
+        user = request.env["res.users"].sudo().search(
+            ['|',
+             ("phone", "=", kw.get("CalledID")),
+             ("mobile", "=", kw.get("CalledID"))], limit=1
         )
         self.create_cdr_record(**kw)
         return request.env["phone.common"].incall_notify_by_login(

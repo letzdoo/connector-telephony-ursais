@@ -42,7 +42,7 @@ class PhoneCommon(models.AbstractModel):
     @api.model
     def incall_notify_by_login(self, number, login_list):
         assert isinstance(login_list, list), 'login_list must be a list'
-        res = self.get_record_from_phone_number(number)
+        res = self.sudo().get_record_from_phone_number(number)
         users = self.env['res.users'].search(
             [('login', 'in', login_list)])
         logger.info(
