@@ -14,6 +14,19 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     @api.multi
+    def open_outgoing_notification(self):
+        channel = "notify_info_%s" % self.env.user.id
+        bus_message = {
+            "message": _("Calling from : %s" % self.env.user.phone),
+            "title": _("Outgoing Call to %s" % self.display_name),
+            # 'sticky': True,
+            "action_link_name": "action_link_name",
+            "Outnotification": "OutGoingNotification",
+            "id": self.env.user.id,
+        }
+        self.sudo().env["bus.bus"].sendone(channel, bus_message)
+
+    @api.multi
     def outgoing_call_notification(self):
         # For Outgoing Calls
         if not self.env.user.company_id.server_address:

@@ -96,6 +96,16 @@ odoo.define(
                         eventID: message.id,
                     });
                 }
+                if (message.Outnotification) {
+                    return this.call("notification", "notify", {
+                        Notification: OutGoingNotification,
+                        title: message.title,
+                        message: message.message,
+                        sticky: message.sticky,
+                        className: message.className,
+                        eventID: message.id,
+                    });
+                }
                 return this.call("notification", "notify", {
                     type: message.type,
                     title: message.title,

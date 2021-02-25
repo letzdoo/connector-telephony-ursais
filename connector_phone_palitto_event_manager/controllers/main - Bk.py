@@ -4,7 +4,7 @@ from odoo.http import request
 
 class PCSVOIP(http.Controller):
     def create_cdr_record(self, **kw):
-        if kw.get("Inbound") == "1":
+        if kw.get("Inbound") == 1:
             inbound_flag = "inbound"
         else:
             inbound_flag = "outbound"
@@ -13,7 +13,7 @@ class PCSVOIP(http.Controller):
             "inbound_flag": inbound_flag,
             "call_start_time": kw.get("StartTime"),
             "caller_id": kw.get("CallerID"),
-            "called_id": kw.get("CalledID"),
+            "caller_id_name": kw.get("CallerIDName"), # add res partner name
             "state": "offering",
         }
         return request.env["phone.cdr"].sudo().create(vals)
@@ -25,24 +25,14 @@ class PCSVOIP(http.Controller):
         user = (
             request.env["res.users"]
             .sudo()
-            .search(
-                [
-                    ("related_phone", "=", kw.get("CalledID")),
-                ],
-                limit=1,
-            )
+            .search([("related_phone", "=", kw.get("Ext"))], limit=1)
         )
-        cdr = self.create_cdr_record(**kw)
-        if cdr:
-            return (
-                request.env["phone.common"]
-                .sudo()
-                .incall_notify_by_login(
-                    kw.get("CallerID"), [user.login], calltype="Incoming Call",
-                )
-            )
-        else:
-            return False
+        self.create_cdr_record(**kw)
+        return (
+            request.env["phone.common"]
+            .sudo()
+            .incall_notify_by_login(kw.get("CallerID"), [user.login])
+        )
 
     @http.route(
         "/palitto/Call", type="http", auth="public", website=True, sitemap=False
@@ -51,21 +41,14 @@ class PCSVOIP(http.Controller):
         user = (
             request.env["res.users"]
             .sudo()
-            .search(
-                [
-                    ("related_phone", "=", kw.get("CalledID")),
-                ],
-                limit=1,
-            )
+            .search([("phone", "=", kw.get("CallerID"))], limit=1)
         )
-        cdr = self.create_cdr_record(**kw)
-#         return (
-#             request.env["phone.common"]
-#             .sudo()
-#             .incall_notify_by_login(
-#                 kw.get("CallerID"), [user.login], calltype="Outgoing Call",
-#             )
-#         )
+        self.create_cdr_record(**kw)
+        return (
+            request.env["phone.common"]
+            .sudo()
+            .incall_notify_by_login(kw.get("CallerID"), [user.login])
+        )
 
     @http.route(
         "/palitto/missedCall", type="http", auth="public", website=True, sitemap=False
@@ -74,12 +57,7 @@ class PCSVOIP(http.Controller):
         user = (
             request.env["res.users"]
             .sudo()
-            .search(
-                [
-                    ("related_phone", "=", kw.get("CalledID")),
-                ],
-                limit=1,
-            )
+            .search([("phone", "=", kw.get("CallerID"))], limit=1)
         )
         cdr = (
             request.env["phone.cdr"]
@@ -91,9 +69,7 @@ class PCSVOIP(http.Controller):
         return (
             request.env["phone.common"]
             .sudo()
-            .incall_notify_by_login(
-                kw.get("CallerID"), [user.login], calltype="Missed Call",
-            )
+            .incall_notify_by_login(kw.get("CallerID"), [user.login])
         )
 
     @http.route(
@@ -103,12 +79,7 @@ class PCSVOIP(http.Controller):
         user = (
             request.env["res.users"]
             .sudo()
-            .search(
-                [
-                    ("related_phone", "=", kw.get("CalledID")),
-                ],
-                limit=1,
-            )
+            .search([("phone", "=", kw.get("CallerID"))], limit=1)
         )
         cdr = (
             request.env["phone.cdr"]
@@ -120,10 +91,9 @@ class PCSVOIP(http.Controller):
         return (
             request.env["phone.common"]
             .sudo()
-            .incall_notify_by_login(
-                kw.get("CallerID"), [user.login], calltype="Completed Call",
-            )
+            .incall_notify_by_login(kw.get("CallerID"), [user.login])
         )
+
     @http.route(
         "/palitto/heldCall", type="http", auth="public", website=True, sitemap=False
     )
@@ -131,12 +101,7 @@ class PCSVOIP(http.Controller):
         user = (
             request.env["res.users"]
             .sudo()
-            .search(
-                [
-                    ("related_phone", "=", kw.get("CalledID")),
-                ],
-                limit=1,
-            )
+            .search([("phone", "=", kw.get("CallerID"))], limit=1)
         )
         cdr = (
             request.env["phone.cdr"]
@@ -148,9 +113,7 @@ class PCSVOIP(http.Controller):
         return (
             request.env["phone.common"]
             .sudo()
-            .incall_notify_by_login(
-                kw.get("CallerID"), [user.login], calltype="Held Call",
-            )
+            .incall_notify_by_login(kw.get("CallerID"), [user.login])
         )
 
     @http.route(
@@ -160,12 +123,7 @@ class PCSVOIP(http.Controller):
         user = (
             request.env["res.users"]
             .sudo()
-            .search(
-                [
-                    ("related_phone", "=", kw.get("CalledID")),
-                ],
-                limit=1,
-            )
+            .search([("phone", "=", kw.get("CallerID"))], limit=1)
         )
         cdr = (
             request.env["phone.cdr"]
@@ -177,7 +135,5 @@ class PCSVOIP(http.Controller):
         return (
             request.env["phone.common"]
             .sudo()
-            .incall_notify_by_login(
-                kw.get("CallerID"), [user.login], calltype="Unheld Call",
-            )
+            .incall_notify_by_login(kw.get("CallerID"), [user.login])
         )

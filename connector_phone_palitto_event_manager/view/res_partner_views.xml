@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Add button for outgoing call -->
+    <record id="partner_form_outgoing_call_form_view" model="ir.ui.view">
+        <field name="name">res.partner.form.outgoing.call</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone']" position="replace">
+                <div class="o_row">
+                    <field name="phone" widget="mask" data-inputmask="'mask': '(999) 999-9999'"/>
+                    <button
+                        type="object"
+                        name="open_outgoing_notification"
+                        class="btn-sm btn-link mb4 fa fa-phone"
+                        aria-label="Outgoing Call"
+                        title="Outgoing Call"
+                        attrs="{'invisible':[('phone', '=', False)]}"
+                    />
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='mobile']" position="replace">
+                <div class="o_row">
+                    <field name="mobile" widget="mask" data-inputmask="'mask': '(999) 999-9999'"/>
+                    <button
+                        type="object"
+                        name="open_outgoing_notification"
+                        class="btn-sm btn-link mb4 fa fa-mobile"
+                        aria-label="Outgoing Call"
+                        title="Outgoing Call"
+                        attrs="{'invisible':[('mobile', '=', False)]}"
+                    />
+                </div>
+            </xpath>
+            <!-- TO DO With International Phone -->
+        </field>
+    </record>
+
+</odoo>
