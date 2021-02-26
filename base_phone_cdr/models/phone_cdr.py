@@ -30,6 +30,7 @@ class PhoneCDR(models.Model):
         [("outbound", "Outbound"), ("inbound", "Inbound")], string="Call Inbound flag"
     )
     call_start_time = fields.Datetime("Call start time")
+    call_end_time = fields.Datetime("Call end time")
     call_connect_time = fields.Datetime("Call connect time")
     ring_time = fields.Float(compute="_compute_ring_time", string="Compute ring time")
     talk_time = fields.Datetime("Talk Time")

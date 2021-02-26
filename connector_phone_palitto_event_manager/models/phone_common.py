@@ -34,7 +34,7 @@ class PhoneCommon(models.AbstractModel):
             ]
         else:
             end_number_to_match = presented_number
-        partner = self.env["res.partner"].search(
+        partner = self.env["res.partner"].sudo().search(
             [
                 "|",
                 ("phone", "=", end_number_to_match),
@@ -54,14 +54,13 @@ class PhoneCommon(models.AbstractModel):
             users = self.env["res.users"].sudo().search([("login", "in", login_list)])
             action = self._prepare_incall_pop_action(res, number)
             action = clean_action(action)
-            if action and res:
+            if action:
                 for user in users:
                     channel = "notify_info_%s" % user.id
                     bus_message = {
                         "message": _(calltype + " from : " + callerid),
                         "title": _(calltype),
                         "action": action,
-                        # 'sticky': True,
                         "action_link_name": "action_link_name",
                         "notification": "IncomingNotification",
                         "id": user.id,
