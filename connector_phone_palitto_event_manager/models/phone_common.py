@@ -63,7 +63,7 @@ class PhoneCommon(models.AbstractModel):
                         "action": action,
                         "action_link_name": "action_link_name",
                         "notification": "IncomingNotification",
-                        "id": user.id,
+                        "id": res[1],
                     }
                     self.sudo().env["bus.bus"].sendone(channel, bus_message)
                     _logger.debug(
