@@ -9,21 +9,15 @@ class PCSVOIP(http.Controller):
             inbound_flag = "inbound"
         else:
             inbound_flag = "outbound"
-        partner = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
-        if partner:
-            vals = {
-                "guid": kw.get("GUID"),
-                "inbound_flag": inbound_flag,
-                "call_start_time": kw.get("StartTime"),
-                "call_end_time":kw.get("EndTime"),  # To Check in Incoming
-                "caller_id": kw.get("CallerID"),
-                "caller_id_name": partner[2],
-                "partner_id": partner[1],
-                "state": "offering",
-            }
-            return request.env["phone.cdr"].sudo().create(vals)
-        else:
-            return False
+#         partner = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
+#         if partner:
+        vals = {
+            "guid": kw.get("GUID"),
+            "inbound_flag": inbound_flag,
+            "call_start_time": kw.get("StartTime"),
+            "state": "offering",
+        }
+        return request.env["phone.cdr"].sudo().create(vals)
 
     @http.route(
         "/palitto/incomingCall", type="http", auth="public", website=True, sitemap=False
@@ -40,7 +34,7 @@ class PCSVOIP(http.Controller):
             )
         )
         cdr = self.create_cdr_record(**kw)
-        if cdr:
+        if cdr and user:
             cdr.sudo().write({'user_id' : user.id})
             return (
                 request.env["phone.common"]
@@ -94,14 +88,18 @@ class PCSVOIP(http.Controller):
         )
         # ToDo Calculate End time
         if cdr:
-            cdr.sudo().write({"state": "missed", 'user_id' : user.id})
-            return (
-                request.env["phone.common"]
-                .sudo()
-                .incall_notify_by_login(
-                    kw.get("CallerID"), [user.login], calltype="Missed Call",
-                )
-            )
+            partner = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
+            cdr_vals = {
+                "call_end_time":kw.get("EndTime"),
+                "caller_id": kw.get("CallerID"),
+                "caller_id_name": partner[2],
+                "partner_id":partner[1],
+                "state" : "missed",
+                "user_id":user.id
+            }
+            cdr.sudo().write(cdr_vals)
+
+            return True
         else:
             False
 
@@ -124,15 +122,18 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search([("guid", "=", kw.get("GUID"))], limit=1)
         )
+        partner = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
         # ToDo - Calculate ring time & talk time
-        cdr.write({"state": "completed"})
-        return (
-            request.env["phone.common"]
-            .sudo()
-            .incall_notify_by_login(
-                kw.get("CallerID"), [user.login], calltype="Completed Call",
-            )
-        )
+        # Needtodiscuss
+        cdr_vals = {
+            "call_end_time":kw.get("EndTime"),  # To Check in Incoming
+            "caller_id": kw.get("CallerID"),
+            "caller_id_name": partner[2],
+            "partner_id":partner[1],
+            "state" : "completed"
+        }
+        cdr.sudo().write(cdr_vals)
+        return True
 
     @http.route(
         "/palitto/heldCall", type="http", auth="public", website=True, sitemap=False

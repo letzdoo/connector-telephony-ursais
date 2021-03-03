@@ -34,42 +34,38 @@ class PhoneCommon(models.AbstractModel):
             ]
         else:
             end_number_to_match = presented_number
-        partner = self.env["res.partner"].sudo().search(
+        partners = self.env["res.partner"].sudo().search(
             [
                 "|",
-                ("phone", "=", end_number_to_match),
-                ("mobile", "=", end_number_to_match),
-            ],
-            limit=1,
+                ("phone", "ilike", end_number_to_match),
+                ("mobile", "ilike", end_number_to_match),
+            ]
         )
-        return ("res.partner", partner.id, partner.name)
+        return partners
 
     @api.model
     def incall_notify_by_login(self, number, login_list, calltype="Incoming Call"):
         assert isinstance(login_list, list), "login_list must be a list"
-        res = self.sudo().get_record_from_phone_number(number)
+        partners = self.sudo().get_record_from_phone_number(number)
         response = False
-        if res:
-            callerid = res[2]
-            users = self.env["res.users"].sudo().search([("login", "in", login_list)])
-            action = self._prepare_incall_pop_action(res, number)
+        for partner in partners:
+            user = self.env["res.users"].sudo().search([("login", "in", login_list)])
+            action = self._prepare_incall_pop_action(("res.partner", partner.id, partner.name), number)
             action = clean_action(action)
             if action:
-                for user in users:
-                    channel = "notify_info_%s" % user.id
-                    bus_message = {
-                        "message": _(calltype + " from : " + callerid),
-                        "title": _(calltype),
-                        "action": action,
-                        "action_link_name": "action_link_name",
-                        "notification": "IncomingNotification",
-                        "id": res[1],
-                    }
-                    self.sudo().env["bus.bus"].sendone(channel, bus_message)
-                    _logger.debug(
-                        "This action has been sent to user ID %d: %s"
-                        % (user.id, action)
-                    )
-
-            response = callerid
+                channel = "notify_info_%s" % user.id
+                bus_message = {
+                    "message": _(calltype + " from : " + partner.name),
+                    "title": _(calltype),
+                    "action": action,
+                    "action_link_name": "action_link_name",
+                    "notification": "IncomingNotification",
+                    "id": partner.id,
+                }
+                self.sudo().env["bus.bus"].sendone(channel, bus_message)
+                _logger.debug(
+                    "This action has been sent to user ID %d: %s"
+                    % (user.id, action)
+                )
+            response = partner.name
         return response
