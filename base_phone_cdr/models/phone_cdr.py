@@ -35,7 +35,6 @@ class PhoneCDR(models.Model):
     ring_time = fields.Float(compute="_compute_ring_time", string="Compute ring time")
     talk_time = fields.Datetime("Talk Time")
     caller_id = fields.Char("Caller ID")
-    caller_id_name = fields.Char("Caller ID Name")
     called_id = fields.Char("Called ID")
     called_id_name = fields.Char("Called ID Name")
     state = fields.Selection(
@@ -52,22 +51,8 @@ class PhoneCDR(models.Model):
     user_id = fields.Many2one(
         "res.users", compute="_compute_odoo_user", string="Odoo User"
     )
-    partner_id = fields.Many2one("res.partner", string="Partner")
-
-    @api.model
-    def create(self, vals):
-        res = super(PhoneCDR, self).create(vals)
-        if res.inbound_flag:
-            res.partner_id = self.env["res.partner"].search(
-                [("phone", "=", res.called_id), ("phone", "!=", False)], limit=1
-            )
-        return res
-
-    def write(self, vals):
-        res = super(PhoneCDR, self).write(vals)
-        if vals.get("inbound_flag") or vals.get("called_id"):
-            for rec in self:
-                rec.partner_id = self.env["res.partner"].search(
-                    [("phone", "=", rec.called_id), ("phone", "!=", False)], limit=1
-                )
-        return res
+    partner_ids = fields.Many2many("res.partner",
+                                   "partner_cdr_rel",
+                                   "cdr_id",
+                                   "partner_id",
+                                   string="Partner")

@@ -16,6 +16,7 @@ class PCSVOIP(http.Controller):
             "inbound_flag": inbound_flag,
             "call_start_time": kw.get("StartTime"),
             "state": "offering",
+            "called_id":kw.get("CalledID"),
         }
         return request.env["phone.cdr"].sudo().create(vals)
 
@@ -35,7 +36,10 @@ class PCSVOIP(http.Controller):
         )
         cdr = self.create_cdr_record(**kw)
         if cdr and user:
-            cdr.sudo().write({'user_id' : user.id})
+            cdr.sudo().write({
+                'user_id' : user.id,
+                'called_id_name' : user.name
+            })
             return (
                 request.env["phone.common"]
                 .sudo()
@@ -92,8 +96,7 @@ class PCSVOIP(http.Controller):
             cdr_vals = {
                 "call_end_time":kw.get("EndTime"),
                 "caller_id": kw.get("CallerID"),
-                "caller_id_name": partner[2],
-                "partner_id":partner[1],
+                "partner_ids":[(6, 0, partner.ids)],
                 "state" : "missed",
                 "user_id":user.id
             }
@@ -122,18 +125,17 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search([("guid", "=", kw.get("GUID"))], limit=1)
         )
-        partner = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
-        # ToDo - Calculate ring time & talk time
-        # Needtodiscuss
-        cdr_vals = {
-            "call_end_time":kw.get("EndTime"),  # To Check in Incoming
-            "caller_id": kw.get("CallerID"),
-            "caller_id_name": partner[2],
-            "partner_id":partner[1],
-            "state" : "completed"
-        }
-        cdr.sudo().write(cdr_vals)
-        return True
+        partners = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
+        if partners:
+            cdr_vals = {
+                "call_end_time":kw.get("EndTime"),  # To Check in Incoming
+                "caller_id": kw.get("CallerID"),
+                "partner_ids":[(6, 0, partners.ids)],
+                "state" : "completed",
+            }
+            cdr.sudo().write(cdr_vals)
+            return partners[0].name
+        return None
 
     @http.route(
         "/palitto/heldCall", type="http", auth="public", website=True, sitemap=False

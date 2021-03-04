@@ -12,15 +12,20 @@ class ResPartner(models.Model):
 
     def _compute_total_cdr_count(self):
         for partner in self:
-            cdr_records = self.env["phone.cdr"].search(
-                [("partner_id", "=", partner.id)]
-            )
-            partner.total_cdr_count = cdr_records and len(cdr_records) or 0
+            query = """select count(cdr_id) from partner_cdr_rel \
+                where partner_id=%s""" % partner.id
+            self._cr.execute(query)
+            records = self._cr.fetchall()
+            partner.total_cdr_count = records[0][0] if records else 0
 
     @api.multi
     def action_view_partner_cdr_records(self):
         self.ensure_one()
         action = self.env.ref("base_phone_cdr.phone_cdr_view_action").read()[0]
         action["domain"] = literal_eval(action["domain"])
-        action["domain"].append(("partner_id", "=", self.id))
+        query = """select cdr_id from partner_cdr_rel \
+            where partner_id=%s""" % self.id
+        self._cr.execute(query)
+        cdr_records = [row[0] for row in self._cr.fetchall()]
+        action["domain"].append(("id", "in", cdr_records))
         return action

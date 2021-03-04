@@ -13,11 +13,10 @@
                         <field name="call_connect_time" />
                         <field name="ring_time" />
                         <field name="caller_id" />
-                        <field name="caller_id_name" />
                         <field name="called_id" />
                         <field name="called_id_name" />
                         <field name="user_id" />
-                        <field name="partner_id" />
+                        <field name="partner_ids" />
                     </group>
                 </sheet>
             </form>
@@ -34,11 +33,10 @@
                 <field name="call_connect_time" />
                 <field name="ring_time" />
                 <field name="caller_id" />
-                <field name="caller_id_name" />
                 <field name="called_id" />
                 <field name="called_id_name" />
                 <field name="user_id" />
-                <field name="partner_id" />
+                <field name="partner_ids" />
             </tree>
         </field>
     </record>

@@ -7,6 +7,8 @@ import requests
 from odoo import _, api, models
 from odoo.exceptions import UserError
 
+from odoo.addons.web.controllers.main import clean_action
+
 _logger = logging.getLogger(__name__)
 
 
@@ -70,13 +72,16 @@ class ResPartner(models.Model):
 
     @api.multi
     def incoming_call_notification(self):
-        action = {
-            "name": _("Customer"),
-            "type": "ir.actions.act_window",
-            "res_model": "res.partner",
-            "view_mode": "form",
-            "views": [[False, "form"]],
-            "target": "new",
-            "res_id": self.id,
-        }
+        partners = self.ids
+        action = self.env.ref('connector_phone_palitto_event_manager.action_partners_tree_all').read()[0]
+        if len(partners) > 1:
+            action['domain'] = [('id', 'in', partners)]
+        elif partners:
+            form_view = [(self.env.ref('base.view_partner_form').id, 'form')]
+            if 'views' in action:
+                action['views'] = form_view + [(state,view) for state,view in action['views'] if view != 'form']
+            else:
+                action['views'] = form_view
+            action['res_id'] = partners[0]
+        action = clean_action(action)
         return action

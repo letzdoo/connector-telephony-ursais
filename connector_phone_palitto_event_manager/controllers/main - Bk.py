@@ -13,7 +13,6 @@ class PCSVOIP(http.Controller):
             "inbound_flag": inbound_flag,
             "call_start_time": kw.get("StartTime"),
             "caller_id": kw.get("CallerID"),
-            "caller_id_name": kw.get("CallerIDName"), # add res partner name
             "state": "offering",
         }
         return request.env["phone.cdr"].sudo().create(vals)

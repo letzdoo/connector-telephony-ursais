@@ -48,24 +48,24 @@ class PhoneCommon(models.AbstractModel):
         assert isinstance(login_list, list), "login_list must be a list"
         partners = self.sudo().get_record_from_phone_number(number)
         response = False
-        for partner in partners:
+        if partners:
             user = self.env["res.users"].sudo().search([("login", "in", login_list)])
-            action = self._prepare_incall_pop_action(("res.partner", partner.id, partner.name), number)
-            action = clean_action(action)
-            if action:
-                channel = "notify_info_%s" % user.id
-                bus_message = {
-                    "message": _(calltype + " from : " + partner.name),
-                    "title": _(calltype),
-                    "action": action,
-                    "action_link_name": "action_link_name",
-                    "notification": "IncomingNotification",
-                    "id": partner.id,
-                }
-                self.sudo().env["bus.bus"].sendone(channel, bus_message)
-                _logger.debug(
-                    "This action has been sent to user ID %d: %s"
-                    % (user.id, action)
-                )
-            response = partner.name
+            if len(partners.ids)>1:
+                name = "Multiple Records"
+            else:
+                name = partners[0].name
+            channel = "notify_info_%s" % user.id
+            bus_message = {
+                "message": _(calltype + " from : " + name),
+                "title": _(calltype),
+                "action_link_name": "action_link_name",
+                "notification": "IncomingNotification",
+                "id": partners.ids,
+            }
+            self.sudo().env["bus.bus"].sendone(channel, bus_message)
+            _logger.debug(
+                "This action has been sent to user ID %d"
+                % (user.id)
+            )
+            response = partners[0].name
         return response

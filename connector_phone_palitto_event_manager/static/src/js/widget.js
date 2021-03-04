@@ -60,6 +60,7 @@ odoo.define(
             template: "IncomingNotification",
 
             init: function(parent, params) {
+                console.log("?/////paramsparams///////////////", params) 
                 this._super(parent, params);
                 this.eid = params.eventID;
                 this.sticky = true;
@@ -70,7 +71,7 @@ odoo.define(
                         this._rpc({
                             model: "res.partner",
                             method: "incoming_call_notification",
-                            args: [[this.eid]],
+                            args: [this.eid],
                         }).then(function(r) {
                             // Alert("Done",)
                             self.do_action(r);
