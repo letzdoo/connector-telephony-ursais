@@ -42,11 +42,11 @@ class ResPartner(models.Model):
 #         cidname = user.name  # Fetched from user
 #         password = user.phone_password  # Fetched from user
 
-        if not password:
-            raise UserError(_("No password configured on User"))
+        #if not password:
+        #    raise UserError(_("No password configured on User"))
 
         # Generate AUTH via sha1
-        hash_object = hashlib.sha1((password + ext).encode("utf-8"))
+        #hash_object = hashlib.sha1((password + ext).encode("utf-8"))
 #         auth = hash_object.hexdigest()
 
         payload = {
