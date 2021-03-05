@@ -37,24 +37,24 @@ class ResPartner(models.Model):
         number = self.phone  # Fetched from partner
 
         user = self.env.user
-        ext = user.external_code  # Fetched from user
-        cid = user.related_phone  # Fetched from user
-        cidname = user.name  # Fetched from user
-        password = user.phone_password  # Fetched from user
+        ext = user.related_phone  # Fetched from user
+#         cid = user.related_phone  # Fetched from user
+#         cidname = user.name  # Fetched from user
+#         password = user.phone_password  # Fetched from user
 
         if not password:
             raise UserError(_("No password configured on User"))
 
         # Generate AUTH via sha1
         hash_object = hashlib.sha1((password + ext).encode("utf-8"))
-        auth = hash_object.hexdigest()
+#         auth = hash_object.hexdigest()
 
         payload = {
             "ext": ext,
             "number": number,
-            "cid": cid,
-            "cidname": cidname,
-            "auth": auth,
+#             "cid": cid,
+#             "cidname": cidname,
+#             "auth": auth,
         }
         payload = urllib.parse.urlencode(payload)
         url = server + payload

@@ -7,7 +7,6 @@
     "depends": ["base_phone_cdr", "inputmask_widget"],
     "data": ["view/template.xml",
              "view/res_company.xml",
-             "view/res_users_view.xml",
              "view/res_partner_views.xml"],
     "qweb": ["static/src/xml/widget.xml"],
     "license": "AGPL-3",
