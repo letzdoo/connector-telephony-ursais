@@ -3,20 +3,17 @@ from odoo.http import request
 
 
 class PCSVOIP(http.Controller):
-
     def create_cdr_record(self, **kw):
         if kw.get("Inbound") == "1":
             inbound_flag = "inbound"
         else:
             inbound_flag = "outbound"
-#         partner = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
-#         if partner:
         vals = {
             "guid": kw.get("GUID"),
             "inbound_flag": inbound_flag,
             "call_start_time": kw.get("StartTime"),
             "state": "offering",
-            "called_id":kw.get("CalledID"),
+            "called_id": kw.get("CalledID"),
         }
         return request.env["phone.cdr"].sudo().create(vals)
 
@@ -36,15 +33,14 @@ class PCSVOIP(http.Controller):
         )
         cdr = self.create_cdr_record(**kw)
         if cdr and user:
-            cdr.sudo().write({
-                'user_id' : user.id,
-                'called_id_name' : user.name
-            })
+            cdr.sudo().write({"user_id": user.id, "called_id_name": user.name})
             return (
                 request.env["phone.common"]
                 .sudo()
                 .incall_notify_by_login(
-                    kw.get("CallerID"), [user.login], calltype="Incoming Call",
+                    kw.get("CallerID"),
+                    [user.login],
+                    calltype="Incoming Call",
                 )
             )
         else:
@@ -59,14 +55,14 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("CalledID")),
+                    ("related_phone", "=", kw.get("CallerID")),
                 ],
                 limit=1,
             )
         )
         cdr = self.create_cdr_record(**kw)
         if cdr:
-            cdr.sudo().write({'user_id' : user.id})
+            cdr.sudo().write({"user_id": user.id})
             return True
         else:
             return False
@@ -92,13 +88,17 @@ class PCSVOIP(http.Controller):
         )
         # ToDo Calculate End time
         if cdr:
-            partner = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
+            partner = (
+                request.env["phone.common"]
+                .sudo()
+                .get_record_from_phone_number(kw.get("CallerID"))
+            )
             cdr_vals = {
-                "call_end_time":kw.get("EndTime"),
+                "call_end_time": kw.get("EndTime"),
                 "caller_id": kw.get("CallerID"),
-                "partner_ids":[(6, 0, partner.ids)],
-                "state" : "missed",
-                "user_id":user.id
+                "partner_ids": [(6, 0, partner.ids)],
+                "state": "missed",
+                "user_id": user.id,
             }
             cdr.sudo().write(cdr_vals)
 
@@ -125,13 +125,17 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search([("guid", "=", kw.get("GUID"))], limit=1)
         )
-        partners = request.env['phone.common'].sudo().get_record_from_phone_number(kw.get("CallerID"))
+        partners = (
+            request.env["phone.common"]
+            .sudo()
+            .get_record_from_phone_number(kw.get("CallerID"))
+        )
         if partners:
             cdr_vals = {
-                "call_end_time":kw.get("EndTime"),  # To Check in Incoming
+                "call_end_time": kw.get("EndTime"),  # To Check in Incoming
                 "caller_id": kw.get("CallerID"),
-                "partner_ids":[(6, 0, partners.ids)],
-                "state" : "completed",
+                "partner_ids": [(6, 0, partners.ids)],
+                "state": "completed",
             }
             cdr.sudo().write(cdr_vals)
             return partners[0].name
@@ -162,7 +166,9 @@ class PCSVOIP(http.Controller):
             request.env["phone.common"]
             .sudo()
             .incall_notify_by_login(
-                kw.get("CallerID"), [user.login], calltype="Held Call",
+                kw.get("CallerID"),
+                [user.login],
+                calltype="Held Call",
             )
         )
 
@@ -191,6 +197,8 @@ class PCSVOIP(http.Controller):
             request.env["phone.common"]
             .sudo()
             .incall_notify_by_login(
-                kw.get("CallerID"), [user.login], calltype="Unheld Call",
+                kw.get("CallerID"),
+                [user.login],
+                calltype="Unheld Call",
             )
         )
