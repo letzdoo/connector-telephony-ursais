@@ -13,18 +13,6 @@ class PhoneCDR(models.Model):
                 duration_in_s = duration.total_seconds()
                 rec.ring_time = divmod(duration_in_s, 3600)[0]
 
-    @api.depends("called_id", "inbound_flag")
-    def _compute_odoo_user(self):
-        for rec in self:
-            if rec.inbound_flag:
-                rec.user_id = self.env["res.users"].search(
-                    [
-                        ("related_phone", "=", rec.called_id),
-                        ("related_phone", "!=", False),
-                    ],
-                    limit=1,
-                )
-
     guid = fields.Char("Call GUID")
     inbound_flag = fields.Selection(
         [("outbound", "Outbound"), ("inbound", "Inbound")], string="Call Inbound flag"
@@ -32,6 +20,8 @@ class PhoneCDR(models.Model):
     call_start_time = fields.Datetime("Call start time")
     call_end_time = fields.Datetime("Call end time")
     call_connect_time = fields.Datetime("Call connect time")
+    call_duration = fields.Char("Duration")
+    call_total_duration = fields.Char("Total Duration")
     ring_time = fields.Float(compute="_compute_ring_time", string="Compute ring time")
     talk_time = fields.Datetime("Talk Time")
     caller_id = fields.Char("Caller ID")
@@ -42,14 +32,14 @@ class PhoneCDR(models.Model):
             ("offering", "Offering"),
             ("connected", "Connected"),
             ("missed", "Missed"),
-            ("on_hold", "On Hold"),
             ("completed", "Completed"),
+            ("on_hold", "On Hold"),
         ],
         string="Status",
         default="offering",
     )
     user_id = fields.Many2one(
-        "res.users", compute="_compute_odoo_user", string="Odoo User"
+        "res.users", string="Odoo User"
     )
     partner_ids = fields.Many2many("res.partner",
                                    "partner_cdr_rel",

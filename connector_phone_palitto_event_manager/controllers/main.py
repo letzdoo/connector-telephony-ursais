@@ -3,6 +3,7 @@ from odoo.http import request
 
 
 class PCSVOIP(http.Controller):
+
     def create_cdr_record(self, **kw):
         if kw.get("Inbound") == "1":
             inbound_flag = "inbound"
@@ -47,9 +48,10 @@ class PCSVOIP(http.Controller):
             return False
 
     @http.route(
-        "/palitto/Call", type="http", auth="public", website=True, sitemap=False
+        "/palitto/outgoingCall", type="http", auth="public", website=True, sitemap=False
     )
     def pcs_outgoing_calls(self, *args, **kw):
+
         user = (
             request.env["res.users"]
             .sudo()
@@ -60,9 +62,22 @@ class PCSVOIP(http.Controller):
                 limit=1,
             )
         )
+
         cdr = self.create_cdr_record(**kw)
+
         if cdr:
-            cdr.sudo().write({"user_id": user.id})
+            partner = (
+                request.env["phone.common"]
+                .sudo()
+                .get_record_from_phone_number(kw.get("CalledID"))
+            )
+            cdr_vals = {
+                "caller_id": kw.get("CallerID"),
+                "partner_ids": [(6, 0, partner.ids)],
+                "state": "completed",
+                "user_id": user.id,
+            }
+            cdr.sudo().write(cdr_vals)
             return True
         else:
             return False
@@ -107,7 +122,7 @@ class PCSVOIP(http.Controller):
             False
 
     @http.route(
-        "/palitto/Completed", type="http", auth="public", website=True, sitemap=False
+        "/palitto/callCompleted", type="http", auth="public", website=True, sitemap=False
     )
     def pcs_completed_calls(self, *args, **kw):
         user = (
@@ -115,7 +130,7 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("CalledID")),
+                    ("related_phone", "=", kw.get("CallerID")),
                 ],
                 limit=1,
             )
@@ -128,17 +143,19 @@ class PCSVOIP(http.Controller):
         partners = (
             request.env["phone.common"]
             .sudo()
-            .get_record_from_phone_number(kw.get("CallerID"))
+            .get_record_from_phone_number(kw.get("CalledID"))
         )
         if partners:
             cdr_vals = {
-                "call_end_time": kw.get("EndTime"),  # To Check in Incoming
+                "call_end_time": kw.get("EndTime"),
                 "caller_id": kw.get("CallerID"),
                 "partner_ids": [(6, 0, partners.ids)],
                 "state": "completed",
+                "call_duration":kw.get("Duration", 0),
+                "call_total_duration":kw.get("TotalDuration", 0)
             }
             cdr.sudo().write(cdr_vals)
-            return partners[0].name
+            return True
         return None
 
     @http.route(

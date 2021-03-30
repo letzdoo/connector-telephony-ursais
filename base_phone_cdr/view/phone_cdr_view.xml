@@ -5,12 +5,19 @@
         <field name="model">phone.cdr</field>
         <field name="arch" type="xml">
             <form string="Phone CDR" edit="true" create="true" delete="true">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="offering,connected,missed,completed,on_hold" />
+                </header>
+
                 <sheet>
                     <group cols="4">
                         <field name="guid" />
                         <field name="inbound_flag" />
                         <field name="call_start_time" />
+                        <field name="call_end_time"/>
                         <field name="call_connect_time" />
+                        <field name="call_duration"/>
+                        <field name="call_total_duration"/>
                         <field name="ring_time" />
                         <field name="caller_id" />
                         <field name="called_id" />
@@ -30,6 +37,7 @@
                 <field name="guid" />
                 <field name="inbound_flag" />
                 <field name="call_start_time" />
+                <field name="call_end_time"/>
                 <field name="call_connect_time" />
                 <field name="ring_time" />
                 <field name="caller_id" />
@@ -37,6 +45,7 @@
                 <field name="called_id_name" />
                 <field name="user_id" />
                 <field name="partner_ids" />
+                <field name="state"/>
             </tree>
         </field>
     </record>
