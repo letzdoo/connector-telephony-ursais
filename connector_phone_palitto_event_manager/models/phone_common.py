@@ -28,19 +28,18 @@ class PhoneCommon(models.AbstractModel):
         nr_digits_to_match_from_end = (
             self.env.user.company_id.number_of_digits_to_match_from_end
         )
+        partners = []
         if len(presented_number) >= nr_digits_to_match_from_end:
             end_number_to_match = presented_number[
                 -nr_digits_to_match_from_end : len(presented_number)
             ]
-        else:
-            end_number_to_match = presented_number
-        partners = self.env["res.partner"].sudo().search(
-            [
-                "|",
-                ("phone", "ilike", end_number_to_match),
-                ("mobile", "ilike", end_number_to_match),
-            ]
-        )
+            partners = self.env["res.partner"].sudo().search(
+                [
+                    "|",
+                    ("phone", "ilike", end_number_to_match),
+                    ("mobile", "ilike", end_number_to_match),
+                ]
+            )
         return partners
 
     @api.model
