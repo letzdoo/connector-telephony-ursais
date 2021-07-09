@@ -1,6 +1,10 @@
 from odoo import http
 from odoo.http import request
 
+import pytz
+
+from datetime import datetime
+
 
 class PCSVOIP(http.Controller):
 
@@ -9,14 +13,25 @@ class PCSVOIP(http.Controller):
             inbound_flag = "inbound"
         else:
             inbound_flag = "outbound"
+        return_date = self.convert_into_correct_timezone(kw.get("StartTime"))
         vals = {
             "guid": kw.get("GUID"),
             "inbound_flag": inbound_flag,
-            "call_start_time": kw.get("StartTime"),
+            "call_start_time": return_date,
             "state": "offering",
             "called_id": kw.get("CalledID"),
         }
         return request.env["phone.cdr"].sudo().create(vals)
+
+    def convert_into_correct_timezone(self, record_date):
+        record_date = datetime.strptime(record_date, '%Y-%m-%d %H:%M:%S')
+        timezone = request.env.context.get('tz', False) or request.env.user.partner_id.tz
+        return_date = None
+        if timezone:
+            src_tz = pytz.timezone("UTC")
+            dst_tz = pytz.timezone(timezone)
+            return_date = dst_tz.localize(record_date).astimezone(src_tz)
+        return return_date
 
     @http.route(
         "/palitto/incomingCall", type="http", auth="public", website=True, sitemap=False
@@ -108,8 +123,9 @@ class PCSVOIP(http.Controller):
                 .sudo()
                 .get_record_from_phone_number(kw.get("CallerID"))
             )
+            return_date = self.convert_into_correct_timezone(kw.get("EndTime"))
             cdr_vals = {
-                "call_end_time": kw.get("EndTime"),
+                "call_end_time": return_date,
                 "caller_id": kw.get("CallerID"),
                 "partner_ids": [(6, 0, partner.ids)],
                 "state": "missed",
@@ -125,37 +141,35 @@ class PCSVOIP(http.Controller):
         "/palitto/callCompleted", type="http", auth="public", website=True, sitemap=False
     )
     def pcs_completed_calls(self, *args, **kw):
-        user = (
-            request.env["res.users"]
-            .sudo()
-            .search(
-                [
-                    ("related_phone", "=", kw.get("CallerID")),
-                ],
-                limit=1,
-            )
-        )
         cdr = (
             request.env["phone.cdr"]
             .sudo()
             .search([("guid", "=", kw.get("GUID"))], limit=1)
         )
-        partners = (
-            request.env["phone.common"]
-            .sudo()
-            .get_record_from_phone_number(kw.get("CalledID"))
-        )
-        if partners:
-            cdr_vals = {
-                "call_end_time": kw.get("EndTime"),
-                "caller_id": kw.get("CallerID"),
-                "partner_ids": [(6, 0, partners.ids)],
-                "state": "completed",
-                "call_duration":kw.get("Duration", 0),
-                "call_total_duration":kw.get("TotalDuration", 0)
-            }
-            cdr.sudo().write(cdr_vals)
-            return True
+        if cdr:
+            if cdr.inbound_flag=="inbound":
+                customer = kw.get("CallerID")
+                user = kw.get("CalledID")
+            else:
+                customer = kw.get("CalledID")
+                user = kw.get("CallerID")
+            partners = (
+                request.env["phone.common"]
+                .sudo()
+                .get_record_from_phone_number(customer)
+            )
+            if partners:
+                return_date = self.convert_into_correct_timezone(kw.get("EndTime"))
+                cdr_vals = {
+                    "call_end_time": return_date,
+                    "caller_id": customer,
+                    "partner_ids": [(6, 0, partners.ids)],
+                    "state": "completed",
+                    "call_duration":kw.get("Duration", 0),
+                    "call_total_duration":kw.get("TotalDuration", 0)
+                }
+                cdr.sudo().write(cdr_vals)
+                return []
         return None
 
     @http.route(
