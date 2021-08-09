@@ -8,12 +8,12 @@ from datetime import datetime
 
 class PCSVOIP(http.Controller):
 
-    def create_cdr_record(self, **kw):
+    def create_cdr_record(self, user, **kw):
         if kw.get("Inbound") == "1":
             inbound_flag = "inbound"
         else:
             inbound_flag = "outbound"
-        return_date = self.convert_into_correct_timezone(kw.get("StartTime"))
+        return_date = self.convert_into_correct_timezone(kw.get("StartTime"), user)
         vals = {
             "guid": kw.get("GUID"),
             "inbound_flag": inbound_flag,
@@ -23,9 +23,9 @@ class PCSVOIP(http.Controller):
         }
         return request.env["phone.cdr"].sudo().create(vals)
 
-    def convert_into_correct_timezone(self, record_date):
+    def convert_into_correct_timezone(self, record_date, user):
         record_date = datetime.strptime(record_date, '%Y-%m-%d %H:%M:%S')
-        timezone = request.env.context.get('tz', False) or request.env.user.partner_id.tz
+        timezone = request.env.context.get('tz', False) or user.partner_id.tz
         return_date = None
         if timezone:
             src_tz = pytz.timezone("UTC")
@@ -47,7 +47,7 @@ class PCSVOIP(http.Controller):
                 limit=1,
             )
         )
-        cdr = self.create_cdr_record(**kw)
+        cdr = self.create_cdr_record(user, **kw)
         if cdr and user:
             cdr.sudo().write({"user_id": user.id, "called_id_name": user.name})
             return (
@@ -123,7 +123,7 @@ class PCSVOIP(http.Controller):
                 .sudo()
                 .get_record_from_phone_number(kw.get("CallerID"))
             )
-            return_date = self.convert_into_correct_timezone(kw.get("EndTime"))
+            return_date = self.convert_into_correct_timezone(kw.get("EndTime"), user)
             cdr_vals = {
                 "call_end_time": return_date,
                 "caller_id": kw.get("CallerID"),
@@ -158,8 +158,18 @@ class PCSVOIP(http.Controller):
                 .sudo()
                 .get_record_from_phone_number(customer)
             )
+            users = (
+                request.env["res.users"]
+                    .sudo()
+                    .search(
+                    [
+                        ("related_phone", "=", user),
+                    ],
+                    limit=1,
+                )
+            )
             if partners:
-                return_date = self.convert_into_correct_timezone(kw.get("EndTime"))
+                return_date = self.convert_into_correct_timezone(kw.get("EndTime"), users)
                 cdr_vals = {
                     "call_end_time": return_date,
                     "caller_id": customer,
