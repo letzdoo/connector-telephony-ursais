@@ -78,7 +78,7 @@ class PCSVOIP(http.Controller):
             )
         )
 
-        cdr = self.create_cdr_record(**kw)
+        cdr = self.create_cdr_record(user, **kw)
 
         if cdr:
             partner = (
