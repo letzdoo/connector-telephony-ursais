@@ -93,7 +93,7 @@ class PCSVOIP(http.Controller):
                 "user_id": user.id,
             }
             cdr.sudo().write(cdr_vals)
-            return True
+            return []
         else:
             return False
 
@@ -133,9 +133,9 @@ class PCSVOIP(http.Controller):
             }
             cdr.sudo().write(cdr_vals)
 
-            return True
+            return []
         else:
-            False
+            return False
 
     @http.route(
         "/palitto/callCompleted", type="http", auth="public", website=True, sitemap=False
