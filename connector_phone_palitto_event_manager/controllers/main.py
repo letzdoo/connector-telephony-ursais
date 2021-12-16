@@ -42,7 +42,7 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("CalledID")),
+                    ("related_phone", "=", kw.get("Ext")),
                 ],
                 limit=1,
             )
@@ -72,7 +72,7 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("CallerID")),
+                    ("related_phone", "=", kw.get("Ext")),
                 ],
                 limit=1,
             )
@@ -106,7 +106,7 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("CalledID")),
+                    ("related_phone", "=", kw.get("Ext")),
                 ],
                 limit=1,
             )
@@ -191,7 +191,7 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("CalledID")),
+                    ("related_phone", "=", kw.get("Ext")),
                 ],
                 limit=1,
             )
@@ -222,7 +222,7 @@ class PCSVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("CalledID")),
+                    ("related_phone", "=", kw.get("Ext")),
                 ],
                 limit=1,
             )
