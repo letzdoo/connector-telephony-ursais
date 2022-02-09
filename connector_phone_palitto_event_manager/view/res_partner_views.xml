@@ -17,6 +17,7 @@
                         aria-label="Outgoing Call"
                         title="Outgoing Call"
                         attrs="{'invisible':[('phone', '=', False)]}"
+                        context="{'phone_partner': 1}"
                     />
                 </div>
             </xpath>
@@ -30,6 +31,7 @@
                         aria-label="Outgoing Call"
                         title="Outgoing Call"
                         attrs="{'invisible':[('mobile', '=', False)]}"
+                        context="{'mobile_partner': 1}"
                     />
                 </div>
             </xpath>

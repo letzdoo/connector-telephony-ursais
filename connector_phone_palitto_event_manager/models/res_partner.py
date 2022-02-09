@@ -18,8 +18,9 @@ class ResPartner(models.Model):
     @api.multi
     def open_outgoing_notification(self):
         channel = "notify_info_%s" % self.env.user.id
+        called_from = self._context.get('mobile_partner') and self.env.user.mobile or self.env.user.phone
         bus_message = {
-            "message": _("Calling from : %s" % self.env.user.phone),
+            "message": _("Calling from : %s" % called_from),
             "title": _("Outgoing Call to %s" % self.display_name),
             # 'sticky': True,
             "action_link_name": "action_link_name",
