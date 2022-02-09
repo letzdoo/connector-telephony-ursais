@@ -4,7 +4,7 @@ import urllib
 
 import requests
 
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 from odoo.addons.web.controllers.main import clean_action
@@ -15,18 +15,33 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
+    called_for_phone = fields.Boolean()
+    called_for_mobile = fields.Boolean()
+
+    def update_called_for_values(self):
+        for partner in self:
+            if self._context.get('phone_partner'):
+                partner.called_for_phone = True
+                partner.called_for_mobile = False
+            elif self._context.get('mobile_partner'):
+                partner.called_for_phone = False
+                partner.called_for_mobile = True
+            else:
+                partner.called_for_phone = False
+                partner.called_for_mobile = False
+
     @api.multi
     def open_outgoing_notification(self):
         channel = "notify_info_%s" % self.env.user.id
-        called_from = self._context.get('mobile_partner') and self.env.user.mobile or self.env.user.phone
         bus_message = {
-            "message": _("Calling from : %s" % called_from),
+            "message": _("Calling from : %s" % self.env.user.phone),
             "title": _("Outgoing Call to %s" % self.display_name),
             # 'sticky': True,
             "action_link_name": "action_link_name",
             "Outnotification": "OutGoingNotification",
             "id": self.id,
         }
+        self.update_called_for_values()
         self.env["bus.bus"].sendone(channel, bus_message)
 
     @api.multi
@@ -37,7 +52,7 @@ class ResPartner(models.Model):
         if not self.env.user.company_id.server_address:
             raise UserError(_("Please specify server address in Company Setting"))
         server = self.env.user.company_id.server_address + "/DialNumber/?"
-        number = self.phone  # Fetched from partner
+        number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
 
         user = self.env.user
         ext = user.related_phone  # Fetched from user
