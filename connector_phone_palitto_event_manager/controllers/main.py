@@ -60,7 +60,7 @@ class PCSVOIP(http.Controller):
                 )
             )
         else:
-            return False
+            return ""
 
     @http.route(
         "/palitto/outgoingCall", type="http", auth="public", website=True, sitemap=False
@@ -93,9 +93,9 @@ class PCSVOIP(http.Controller):
                 "user_id": user.id,
             }
             cdr.sudo().write(cdr_vals)
-            return []
+            return ""
         else:
-            return False
+            return ""
 
     @http.route(
         "/palitto/missedCall", type="http", auth="public", website=True, sitemap=False
@@ -133,9 +133,9 @@ class PCSVOIP(http.Controller):
             }
             cdr.sudo().write(cdr_vals)
 
-            return []
+            return ""
         else:
-            return False
+            return ""
 
     @http.route(
         "/palitto/callCompleted", type="http", auth="public", website=True, sitemap=False
@@ -149,21 +149,20 @@ class PCSVOIP(http.Controller):
         if cdr:
             if cdr.inbound_flag=="inbound":
                 customer = kw.get("CallerID")
-                user = kw.get("CalledID")
             else:
                 customer = kw.get("CalledID")
-                user = kw.get("CallerID")
             partners = (
                 request.env["phone.common"]
                 .sudo()
                 .get_record_from_phone_number(customer)
             )
+
             users = (
                 request.env["res.users"]
                     .sudo()
                     .search(
                     [
-                        ("related_phone", "=", user),
+                        ("related_phone", "=", kw.get("Ext")),
                     ],
                     limit=1,
                 )
@@ -179,8 +178,8 @@ class PCSVOIP(http.Controller):
                     "call_total_duration":kw.get("TotalDuration", 0)
                 }
                 cdr.sudo().write(cdr_vals)
-                return []
-        return None
+                return ""
+        return ""
 
     @http.route(
         "/palitto/heldCall", type="http", auth="public", website=True, sitemap=False
