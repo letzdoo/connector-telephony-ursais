@@ -79,7 +79,6 @@ class PCSVOIP(http.Controller):
         )
 
         cdr = self.create_cdr_record(user, **kw)
-
         if cdr:
             partner = (
                 request.env["phone.common"]
@@ -149,8 +148,10 @@ class PCSVOIP(http.Controller):
         if cdr:
             if cdr.inbound_flag=="inbound":
                 customer = kw.get("CallerID")
+                caller = kw.get("CallerID")
             else:
                 customer = kw.get("CalledID")
+                caller = kw.get("Ext")
             partners = (
                 request.env["phone.common"]
                 .sudo()
@@ -171,7 +172,7 @@ class PCSVOIP(http.Controller):
                 return_date = self.convert_into_correct_timezone(kw.get("EndTime"), users)
                 cdr_vals = {
                     "call_end_time": return_date,
-                    "caller_id": customer,
+                    "caller_id": caller,
                     "partner_ids": [(6, 0, partners.ids)],
                     "state": "completed",
                     "call_duration":kw.get("Duration", 0),
