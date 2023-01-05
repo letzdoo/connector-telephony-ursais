@@ -13,7 +13,7 @@ odoo.define(
             init: function(parent, params) {
                 this._super(parent, params);
                 this.eid = params.eventID;
-                this.sticky = true;
+                this.sticky = false;
 
                 this.events = _.extend(this.events || {}, {
                     "click .link2event": function() {
@@ -63,7 +63,7 @@ odoo.define(
                 console.log("?/////paramsparams///////////////", params) 
                 this._super(parent, params);
                 this.eid = params.eventID;
-                this.sticky = true;
+                this.sticky = false;
 
                 this.events = _.extend(this.events || {}, {
                     "click .link2event": function() {
