@@ -9,14 +9,14 @@ from datetime import datetime
 class INTERMEDIAVOIP(http.Controller):
 
     def create_cdr_record(self, user, **kw):
-        if kw.get("Inbound") == "1":
-            inbound_flag = "inbound"
-        else:
-            inbound_flag = "outbound"
+        # if kw.get("CallType") == "inbound":
+        #     call_type = "inbound"
+        # else:
+        #     inbound_flag = "outbound"
         return_date = self.convert_into_correct_timezone(kw.get("StartTime"), user)
         vals = {
             "guid": kw.get("GUID"),
-            "inbound_flag": inbound_flag,
+            "inbound_flag": kw.get("CallType"),
             "call_start_time": return_date,
             "state": "offering",
             "called_id": kw.get("CalledID"),
@@ -33,32 +33,50 @@ class INTERMEDIAVOIP(http.Controller):
             return_date = dst_tz.localize(record_date).astimezone(src_tz)
         return return_date
 
+    def _check_authentication(self, **kw):
+        api_key == request.env['ir.config_parameter'].sudo().get_param('connector_phone_intermedia_event_manager.secret_key')
+        if api_key != kw.get("secret_key"):
+            return False
+        else:
+            return True
+
     @http.route(
         "/mycontactcenter/incomingCall", type="http", auth="public", website=True, sitemap=False
     )
     def intermedia_incoming_calls(self, *args, **kw):
+        validation = self._check_authentication(**kw)
+        if not validation:
+            return {'message': 'Invalid API key.', 'status': 403,}
         user = (
             request.env["res.users"]
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("Ext")),
+                    ("related_phone", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
         )
-        cdr = self.create_cdr_record(user, **kw)
-        if cdr and user:
-            cdr.sudo().write({"user_id": user.id, "called_id_name": user.name})
-            return (
-                request.env["phone.common"]
-                .sudo()
-                .incall_notify_by_login(
-                    kw.get("CallerID"),
-                    [user.login],
-                    calltype="Incoming Call",
-                )
+        if user:
+            agent_status = request.env["res.partner"].sudo()._check_agent_session_status(
+                user.partner_id
             )
+            if not agent_status:
+                return ""
+            cdr = self.create_cdr_record(user, **kw)
+            if cdr and user:
+                cdr.sudo().write({"user_id": user.id, "called_id_name": user.name})
+                return (
+                    request.env["phone.common"]
+                    .sudo()
+                    .incall_notify_by_login(
+                        kw.get("CallerID"),
+                        [user.login],
+                        calltype="Incoming Call",
+                    )
+                )
+            else:
+                return ""
         else:
             return ""
 
@@ -66,13 +84,15 @@ class INTERMEDIAVOIP(http.Controller):
         "/mycontactcenter/outgoingCall", type="http", auth="public", website=True, sitemap=False
     )
     def intermedia_outgoing_calls(self, *args, **kw):
-
+        validation = self._check_authentication(**kw)
+        if not validation:
+            return {'message': 'Invalid API key.', 'status': 403,}
         user = (
             request.env["res.users"]
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("Ext")),
+                    ("related_phone", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
@@ -86,7 +106,7 @@ class INTERMEDIAVOIP(http.Controller):
                 .get_record_from_phone_number(kw.get("CalledID"))
             )
             cdr_vals = {
-                "caller_id": kw.get("CallerID"),
+                "caller_id": kw.get("AgentId"),
                 "partner_ids": [(6, 0, partner.ids)],
                 "state": "completed",
                 "user_id": user.id,
@@ -99,13 +119,16 @@ class INTERMEDIAVOIP(http.Controller):
     @http.route(
         "/mycontactcenter/missedCall", type="http", auth="public", website=True, sitemap=False
     )
-    def pcs_missedCall_calls(self, *args, **kw):
+    def intermedia_missedCall_calls(self, *args, **kw):
+        validation = self._check_authentication(**kw)
+        if not validation:
+            return {'message': 'Invalid API key.', 'status': 403,}
         user = (
             request.env["res.users"]
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("Ext")),
+                    ("related_phone", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
@@ -115,7 +138,7 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search([("guid", "=", kw.get("GUID"))], limit=1)
         )
-        # ToDo Calculate End time
+
         if cdr:
             partner = (
                 request.env["phone.common"]
@@ -139,7 +162,11 @@ class INTERMEDIAVOIP(http.Controller):
     @http.route(
         "/mycontactcenter/callCompleted", type="http", auth="public", website=True, sitemap=False
     )
-    def pcs_completed_calls(self, *args, **kw):
+    def intermedia_completed_calls(self, *args, **kw):
+        validation = self._check_authentication(**kw)
+        if not validation:
+            return {'message': 'Invalid API key.', 'status': 403,}
+
         cdr = (
             request.env["phone.cdr"]
             .sudo()
@@ -151,7 +178,7 @@ class INTERMEDIAVOIP(http.Controller):
                 caller = kw.get("CallerID")
             else:
                 customer = kw.get("CalledID")
-                caller = kw.get("Ext")
+                caller = kw.get("AgentId")
             partners = (
                 request.env["phone.common"]
                 .sudo()
@@ -163,7 +190,7 @@ class INTERMEDIAVOIP(http.Controller):
                     .sudo()
                     .search(
                     [
-                        ("related_phone", "=", kw.get("Ext")),
+                        ("related_phone", "=", kw.get("AgentId")),
                     ],
                     limit=1,
                 )
@@ -185,13 +212,17 @@ class INTERMEDIAVOIP(http.Controller):
     @http.route(
         "/mycontactcenter/heldCall", type="http", auth="public", website=True, sitemap=False
     )
-    def pcs_held_calls(self, *args, **kw):
+    def intermedia_held_calls(self, *args, **kw):
+        validation = self._check_authentication(**kw)
+        if not validation:
+            return {'message': 'Invalid API key.', 'status': 403,}
+
         user = (
             request.env["res.users"]
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("Ext")),
+                    ("related_phone", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
@@ -201,7 +232,7 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search([("guid", "=", kw.get("GUID"))], limit=1)
         )
-        # ToDo - Calculate hold time
+
         cdr.write({"state": "on_hold"})
         return (
             request.env["phone.common"]
@@ -216,13 +247,13 @@ class INTERMEDIAVOIP(http.Controller):
     @http.route(
         "/mycontactcenter/unheldCall", type="http", auth="public", website=True, sitemap=False
     )
-    def pcs_unheld_calls(self, *args, **kw):
+    def intermedia_unheld_calls(self, *args, **kw):
         user = (
             request.env["res.users"]
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("Ext")),
+                    ("related_phone", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
@@ -232,7 +263,7 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search([("guid", "=", kw.get("GUID"))], limit=1)
         )
-        # ToDo - Calculate unheld time
+
         cdr.write({"state": "connected"})
         return (
             request.env["phone.common"]

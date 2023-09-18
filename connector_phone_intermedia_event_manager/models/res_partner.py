@@ -73,8 +73,8 @@ class ResPartner(models.Model):
         """ Check Agent Status via registered AgentID"""
         # /v3/agents/{id}
         credentials = self._get_intermedia_credentials()
-        if not self.env.user.intermedia_agentid or not self.env.user.intermedia_agent_sessionid:
-            raise UserError(_("Please configure intermedia AgentID and AgentSession on User"))
+        if not self.env.user.intermedia_agentid:
+            raise UserError(_("Please configure intermedia AgentID on User"))
         url = credentials['server_address'] + "/v3/agents/" + self.env.user.intermedia_agentid
         _logger.info("Agent Status URL ---- %s", url)
         response = requests.get(url=url, headers=headers, params={})
@@ -106,7 +106,7 @@ class ResPartner(models.Model):
                 if res.get("AgentId", "") == self.env.user.intermedia_agentid and \
                     res.get("SessionId", "") == self.env.user.intermedia_agent_sessionid:
                     return True
-            return False
+            raise UserError("Agent’s session ID is not valid. Please login to Contact Center to activate")
         elif response.status_code in (400, 401, 404, 500):
             error_msg = _(
                 "Request Call failed with Status %s.\n\n"
@@ -137,37 +137,37 @@ class ResPartner(models.Model):
         # For Outgoing Calls
         if self == {}:
             raise UserError(_("Bad Partner Record"))
-        # if self._check_cca_agent_session() and not self._check_agent_session_status():
+        if self._check_cca_agent_session() and not self._check_agent_session_status():
             # /v3/dialer/entry/{listCode}/{queueId}
             # queueId = self._get_queue_id()
-        credentials = self._get_intermedia_credentials()
-        url = credentials['server_address'] + "/v3/cca/sessions/" + self.env.user.intermedia_agent_sessionid + "/dial/?"
-        number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
-
-        # Dial request parameters
-
-        payload = {
-              "OrgPhoneNo": self.env.user.intermedia_agent_phone,
-              "DstPhoneNo": number,
-              "CallingName": self.name,
-              "CallingNumber": number,
-              "ExecutionAsync": True,
-              "ReturnRecUrl": True
-            }
-        payload = urllib.parse.urlencode(payload)
-        url = url + payload
-        _logger.info("URL ---- %s", url)
-        response = requests.request("POST",url,data={},headers=headers)
-        # response = requests.request(url=url, verb="post", headers=headers, params={})
-        print ("=======response========", response, response.text, response.content)
-        # ToDo : This should be modified based on real response
-        if response.status_code in (400, 401, 404, 500):
-            error_msg = _(
-                "Request Call failed with Status %s.\n\n"
-                "Request:\nGET %s\n\n"
-                "Response:\n%s"
-            ) % (response.status_code, url or "", response.text)
-            _logger.error(error_msg)
+            credentials = self._get_intermedia_credentials()
+            url = credentials['server_address'] + "/v3/cca/sessions/" + self.env.user.intermedia_agent_sessionid + "/dial/?"
+            number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
+    
+            # Dial request parameters
+    
+            payload = {
+                  "OrgPhoneNo": self.env.user.intermedia_agent_phone,
+                  "DstPhoneNo": number,
+                  "CallingName": self.name,
+                  "CallingNumber": number,
+                  "ExecutionAsync": True,
+                  "ReturnRecUrl": True
+                }
+            payload = urllib.parse.urlencode(payload)
+            url = url + payload
+            _logger.info("URL ---- %s", url)
+            response = requests.request("POST",url,data={},headers=headers)
+            # response = requests.request(url=url, verb="post", headers=headers, params={})
+            print ("=======response========", response, response.text, response.content)
+            # ToDo : This should be modified based on real response
+            if response.status_code in (400, 401, 404, 500):
+                error_msg = _(
+                    "Request Call failed with Status %s.\n\n"
+                    "Request:\nGET %s\n\n"
+                    "Response:\n%s"
+                ) % (response.status_code, url or "", response.text)
+                _logger.error(error_msg)
 
     @api.multi
     def incoming_call_notification(self):
