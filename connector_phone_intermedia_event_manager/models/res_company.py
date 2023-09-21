@@ -4,8 +4,6 @@ from odoo import fields, models
 class ResCompany(models.Model):
     _inherit = "res.company"
 
-    intermedia_user = fields.Char()
-    intermedia_password = fields.Char()
     intermedia_server_address = fields.Char("Intermedia API Server Address")
     intermedia_token = fields.Char("Token")
     intermedia_popup_time = fields.Integer(string="Popup Time (Sec)", default=5)

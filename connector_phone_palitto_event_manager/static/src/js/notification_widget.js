@@ -7,6 +7,7 @@ odoo.define("connector_phone_palitto_event_manager.notification_widget", functio
     Notification.include({
 
         willStart: function () {
+	    console.log("\n\nTesting Phone-Notification");
             var self = this;
             var gettime = this._rpc({
                 model: 'res.company',

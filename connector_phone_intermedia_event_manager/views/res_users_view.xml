@@ -9,7 +9,6 @@
             <xpath expr="//group[@name='phone-preferences']" position="after">
                 <group name="intermedia-preferences" string="Intermedia Preferences">
                     <field name="intermedia_agentid" />
-                    <field name="intermedia_agent_sessionid"/>
                     <field name="intermedia_agent_phone"/>
                 </group>
             </xpath>

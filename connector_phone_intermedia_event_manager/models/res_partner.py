@@ -37,39 +37,12 @@ class ResPartner(models.Model):
         if not company_id.intermedia_server_address or \
             not company_id.intermedia_token:
             raise UserError(_("Please configure intermedia URL and Token in Company Setting"))
-        return {'user': company_id.intermedia_user,
-                'passowrd': company_id.intermedia_password,
-                'server_address': company_id.intermedia_server_address,
+        return {'server_address': company_id.intermedia_server_address,
                 'token':company_id.intermedia_token
         }
 
-    # @api.multi
-    # def _get_queue_id(self):
-    #     dial_url = self._get_intermedia_credentials['server_address'] + "/v3/dialer/entry/listcode/"
-    #     dial_payload = [
-    #       {
-    #         "DstNumber": self.called_for_mobile and self.mobile or self.phone,
-    #         "DstName": "Intermedia",
-    #         "OrgNumber": self.user,
-    #         "DialStartDate": "1970-01-01T00:00:00.000Z",
-    #         "DailyDialStartMinutesOffset": 0,
-    #         "DailyDialEndMinutesOffset": 0,
-    #         "DialSecondsTimeout": 0,
-    #         "ExpiryDate": "1970-01-01T00:00:00.000Z",
-    #         "Priority": 0,
-    #         "MinutesRetry": 0,
-    #         "MaxAttempts": 0,
-    #         "ScreenPopUrl": "string",
-    #         "ExtraInfo": "string",
-    #         "DefaultCallerType": "string",
-    #         "DefaultMainSubject": "string",
-    #         "DefaultSubsubject": "string"
-    #       }
-    #     ]
-    #     return queue_id
-
     @api.multi
-    def _check_agent_session_status(self):
+    def _check_agent_status(self):
         """ Check Agent Status via registered AgentID"""
         # /v3/agents/{id}
         credentials = self._get_intermedia_credentials()
@@ -96,17 +69,16 @@ class ResPartner(models.Model):
         """ Check Agent Session details via registered AgentID"""
         # /v3/agents/{id}
         credentials = self._get_intermedia_credentials()
-        if not self.env.user.intermedia_agentid or not self.env.user.intermedia_agent_sessionid:
-            raise UserError(_("Please configure intermedia AgentID and AgentSession on User"))
+        if not (self.env.user.intermedia_agentid and self._check_agent_status()):
+            raise UserError(_("Please configure Intermedia AgentId on User and Contact Center."))
         url = credentials['server_address'] + "/v3/cca/sessions"
         _logger.info("Agent Status URL ---- %s", url)
         response = requests.get(url=url, headers=headers, params={})
         if response.status_code == 200:
             for res in response.json():
-                if res.get("AgentId", "") == self.env.user.intermedia_agentid and \
-                    res.get("SessionId", "") == self.env.user.intermedia_agent_sessionid:
-                    return True
-            raise UserError("Agent’s session ID is not valid. Please login to Contact Center to activate")
+                if str(res.get("AgentId", "")) == self.env.user.intermedia_agentid:
+                    return res.get("SessionId")
+            raise UserError("Agent’s Session ID is not valid. Please login to Contact Center to activate")
         elif response.status_code in (400, 401, 404, 500):
             error_msg = _(
                 "Request Call failed with Status %s.\n\n"
@@ -137,11 +109,12 @@ class ResPartner(models.Model):
         # For Outgoing Calls
         if self == {}:
             raise UserError(_("Bad Partner Record"))
-        if self._check_cca_agent_session() and not self._check_agent_session_status():
+        session_id = self._check_cca_agent_session()
+        if session_id:
             # /v3/dialer/entry/{listCode}/{queueId}
             # queueId = self._get_queue_id()
             credentials = self._get_intermedia_credentials()
-            url = credentials['server_address'] + "/v3/cca/sessions/" + self.env.user.intermedia_agent_sessionid + "/dial/?"
+            url = credentials['server_address'] + "/v3/cca/sessions/" + session_id + "/dial/?"
             number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
     
             # Dial request parameters
