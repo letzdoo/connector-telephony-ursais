@@ -42,13 +42,15 @@ class ResPartner(models.Model):
         }
 
     @api.multi
-    def _check_agent_status(self):
+    def _check_agent_status(self, user=False):
         """ Check Agent Status via registered AgentID"""
         # /v3/agents/{id}
         credentials = self._get_intermedia_credentials()
-        if not self.env.user.intermedia_agentid:
+        if not user:
+            user = self.env.user
+        if not user.intermedia_agentid:
             raise UserError(_("Please configure intermedia AgentID on User"))
-        url = credentials['server_address'] + "/v3/agents/" + self.env.user.intermedia_agentid
+        url = credentials['server_address'] + "/agents/" + user.intermedia_agentid
         _logger.info("Agent Status URL ---- %s", url)
         response = requests.get(url=url, headers=headers, params={})
         if response.status_code == 200 and response.json().get("IsActive", False):
