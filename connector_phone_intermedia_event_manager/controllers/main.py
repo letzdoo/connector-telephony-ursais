@@ -34,7 +34,7 @@ class INTERMEDIAVOIP(http.Controller):
         return return_date
 
     def _check_authentication(self, **kw):
-        api_key == request.env['ir.config_parameter'].sudo().get_param('connector_phone_intermedia_event_manager.secret_key')
+        api_key = request.env['ir.config_parameter'].sudo().get_param('connector_phone_intermedia_event_manager.secret_key')
         if api_key != kw.get("secret_key"):
             return False
         else:
@@ -52,15 +52,13 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("AgentId")),
+                    ("intermedia_agentid", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
         )
         if user:
-            agent_status = request.env["res.partner"].sudo()._check_agent_session_status(
-                user.partner_id
-            )
+            agent_status = user.partner_id._check_agent_status(user)
             if not agent_status:
                 return ""
             cdr = self.create_cdr_record(user, **kw)
