@@ -74,9 +74,9 @@ class INTERMEDIAVOIP(http.Controller):
                     )
                 )
             else:
-                return ""
+                return False
         else:
-            return ""
+            return False
 
     @http.route(
         "/mycontactcenter/outgoingCall", type="http", auth="public", website=True, sitemap=False
@@ -90,7 +90,7 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("AgentId")),
+                    ("AgentId", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
@@ -126,7 +126,7 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("AgentId")),
+                    ("AgentId", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
@@ -188,7 +188,7 @@ class INTERMEDIAVOIP(http.Controller):
                     .sudo()
                     .search(
                     [
-                        ("related_phone", "=", kw.get("AgentId")),
+                        ("AgentId", "=", kw.get("AgentId")),
                     ],
                     limit=1,
                 )
@@ -220,7 +220,7 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("AgentId")),
+                    ("AgentId", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
@@ -251,7 +251,7 @@ class INTERMEDIAVOIP(http.Controller):
             .sudo()
             .search(
                 [
-                    ("related_phone", "=", kw.get("AgentId")),
+                    ("AgentId", "=", kw.get("AgentId")),
                 ],
                 limit=1,
             )
