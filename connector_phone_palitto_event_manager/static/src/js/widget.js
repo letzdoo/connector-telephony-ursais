@@ -7,13 +7,10 @@ odoo.define(
         var Notification = require("web.Notification");
         var WebClient = require("web.WebClient");
 
-	console.log("\n\nTesting Phone#1");
-
         var OutGoingNotification = Notification.extend({
             template: "OutGoingNotification",
 
             init: function(parent, params) {
-		console.log("\n\nTesting Phone#2");
                 this._super(parent, params);
                 this.eid = params.eventID;
                 this.sticky = false;
@@ -38,7 +35,6 @@ odoo.define(
 
         basic_fields.FieldPhone.include({
             _renderReadonly: function() {
-		console.log("\n\nTesting Phone#3");
                 var self = this;
                 this.$el.text(this.value).addClass("o_form_uri");
                 this.$el.attr("href", "javascript:void(0)");
