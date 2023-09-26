@@ -38,7 +38,7 @@ class INTERMEDIAVOIP(http.Controller):
         return return_date
 
     def _check_authentication(self, **kw):
-        api_key = request.env['ir.config_parameter'].sudo().get_param('secret_key')
+        api_key = request.env['ir.config_parameter'].sudo().get_param('connector_phone_intermedia_event_manager.secret_key')
         if api_key != kw.get("secret_key"):
             return False
         else:
