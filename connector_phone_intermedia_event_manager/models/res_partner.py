@@ -111,9 +111,8 @@ class ResPartner(models.Model):
             raise UserError(_("Bad Partner Record"))
         session_id = self._check_cca_agent_session()
         if session_id:
-            # queueId = self._get_queue_id()
             credentials = self._get_intermedia_credentials()
-            url = credentials['server_address'] + "/cca/sessions/" + session_id + "/dial/?"
+            url = credentials['server_address'] + "/cca/sessions/" + session_id + "/dial"
             number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
     
             # Dial request parameters
@@ -122,15 +121,12 @@ class ResPartner(models.Model):
                   "OrgPhoneNo": self.env.user.intermedia_agent_phone,
                   "DstPhoneNo": number,
                   "CallingName": self.name,
-                  "CallingNumber": number,
+                  "CallingNumber": self.env.user.intermedia_agent_phone,
                   "ExecutionAsync": True,
                   "ReturnRecUrl": True
                 }
-            payload = urllib.parse.urlencode(payload)
-            url = url + payload
             _logger.info("URL ---- %s", url)
-            response = requests.request("POST",url,data={},headers=headers)
-            # response = requests.request(url=url, verb="post", headers=headers, params={})
+            response = requests.request("POST",url,json=payload, headers=headers)
             print ("=======response========", response, response.text, response.content)
             # ToDo : This should be modified based on real response
             if response.status_code in (400, 401, 404, 500):
