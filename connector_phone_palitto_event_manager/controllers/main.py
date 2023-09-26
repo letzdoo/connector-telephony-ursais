@@ -67,8 +67,6 @@ class PCSVOIP(http.Controller):
     )
     def pcs_outgoing_calls(self, *args, **kw):
 
-        import pdb; pdb.set_trace()
-
         user = (
             request.env["res.users"]
             .sudo()
