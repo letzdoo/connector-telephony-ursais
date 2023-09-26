@@ -44,7 +44,6 @@ class ResPartner(models.Model):
     @api.multi
     def _check_agent_status(self, user=False):
         """ Check Agent Status via registered AgentID"""
-        # /v3/agents/{id}
         credentials = self._get_intermedia_credentials()
         if not user:
             user = self.env.user
@@ -69,11 +68,10 @@ class ResPartner(models.Model):
     @api.multi
     def _check_cca_agent_session(self):
         """ Check Agent Session details via registered AgentID"""
-        # /v3/agents/{id}
         credentials = self._get_intermedia_credentials()
         if not (self.env.user.intermedia_agentid and self._check_agent_status()):
             raise UserError(_("Please configure Intermedia AgentId on User and Contact Center."))
-        url = credentials['server_address'] + "/v3/cca/sessions"
+        url = credentials['server_address'] + "/cca/sessions"
         _logger.info("Agent Status URL ---- %s", url)
         response = requests.get(url=url, headers=headers, params={})
         if response.status_code == 200:
@@ -113,10 +111,9 @@ class ResPartner(models.Model):
             raise UserError(_("Bad Partner Record"))
         session_id = self._check_cca_agent_session()
         if session_id:
-            # /v3/dialer/entry/{listCode}/{queueId}
             # queueId = self._get_queue_id()
             credentials = self._get_intermedia_credentials()
-            url = credentials['server_address'] + "/v3/cca/sessions/" + session_id + "/dial/?"
+            url = credentials['server_address'] + "/cca/sessions/" + session_id + "/dial/?"
             number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
     
             # Dial request parameters
