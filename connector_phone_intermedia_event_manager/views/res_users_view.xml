@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="view_users_form_telephony_tab_intermedia" model="ir.ui.view">
+        <field name="name">base_phone.res.users.telephony_tab.intermedia</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base_phone_cdr.view_users_form_telephony_tab" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='phone-preferences']" position="after">
+                <group name="intermedia-preferences" string="Intermedia Preferences">
+                    <field name="intermedia_agentid" />
+                    <field name="intermedia_agent_phone"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

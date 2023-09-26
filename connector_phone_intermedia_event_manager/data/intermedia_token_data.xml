@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Add default intermedia key -->
+    <record id="default_intermedia_key" model="ir.config_parameter">
+        <field name="key">connector_phone_intermedia_event_manager.secret_key</field>
+        <field name="value">4hjh45kjkjnt$3#$hewr49324jhhjh32</field>
+    </record>
+
+</odoo>
