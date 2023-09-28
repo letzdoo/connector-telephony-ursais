@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import urllib
+import simplejson
 
 import requests
 
@@ -117,7 +118,7 @@ class ResPartner(models.Model):
     
             # Dial request parameters
     
-            payload = {
+            data = {
                   "OrgPhoneNo": self.env.user.intermedia_agent_phone,
                   "DstPhoneNo": number,
                   "CallingName": self.name,
@@ -125,9 +126,12 @@ class ResPartner(models.Model):
                   "ExecutionAsync": True,
                   "ReturnRecUrl": True
                 }
+            payload = simplejson.dumps(data)
             _logger.info("URL ---- %s", url)
-            response = requests.request("POST",url,json=payload, headers=headers)
-            print ("=======response========", response, response.text, response.content)
+            _logger.info("Headers ---- %s", headers)
+            _logger.info("Payload ---- %s", payload)
+            response = requests.request("POST",url,data=payload, headers=headers)
+            _logger.info("Response ---- %s", response.text)
             # ToDo : This should be modified based on real response
             if response.status_code in (400, 401, 404, 500):
                 error_msg = _(
