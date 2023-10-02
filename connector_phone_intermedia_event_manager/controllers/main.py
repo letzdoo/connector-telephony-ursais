@@ -14,13 +14,11 @@ class INTERMEDIAVOIP(http.Controller):
             called_id=user.intermedia_agent_phone
         else:
             called_id=kw.get("CalledID")
-        #     call_type = "inbound"
-        # else:
-        #     inbound_flag = "outbound"
         return_date = self.convert_into_correct_timezone(kw.get("StartTime"), user)
         vals = {
             "guid": kw.get("GUID"),
             "inbound_flag": kw.get("CallType"),
+            "caller_id": kw.get("CallerID"),
             "call_start_time": return_date,
             "state": "offering",
             "called_id": called_id,
