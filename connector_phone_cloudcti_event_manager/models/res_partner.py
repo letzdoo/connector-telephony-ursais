@@ -1,5 +1,6 @@
 import logging
 import simplejson
+import datetime
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -35,8 +36,14 @@ class ResPartner(models.Model):
         company_id = user.company_id
         if not company_id.cloudcti_url:
             raise UserError(_("Please configure CloudCTI URL in Company Setting."))
+
+        if str(datetime.datetime.now()) > user.token_expiration_date:
+            expired = True
+        else:
+            expired = False
         return {'server_address': company_id.cloudcti_url,
                 'token': user.cloudcti_token,
+                'expired': expired,
                 'cloudcti_username': user.cloudcti_username,
                 'cloudcti_password': user.cloudcti_password,
         }
@@ -60,15 +67,37 @@ class ResPartner(models.Model):
         if self == {}:
             raise UserError(_("Bad Partner Record"))
         credentials = self._get_cloudcti_credentials()
+
+        if credentials['expired']:
+            self.env.user.generate_cloudcti_access_token()
+            credentials = self._get_cloudcti_credentials()
+
         number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
-        url = credentials['server_address'] + "/makecall/" + number
-        headers = {"content-type": "application/json"}
-        response = requests.request(
-            "GET",
-            url,
-            auth=HTTPBasicAuth(credentials.get("cloudcti_username"), credentials.get("cloudcti_password")),
-            headers=headers
-        )
+
+        data = {
+            "Number": number,
+        }
+        payload = simplejson.dumps(data)
+
+        # TO-DO Balaji
+        if credentials['token'] and not credentials['expired']:
+            headers = {"content-type": "application/json", "token":self.env.user.token, 'Accept': 'text/plain'}
+            url = credentials['server_address'] + "/makecall"
+            response = requests.request(
+                "GET",
+                url,
+                data=payload,
+                headers=headers
+            )
+        else:
+            headers = {"content-type": "application/json"}
+            url = credentials['server_address'] + "/makecall/" + number
+            response = requests.request(
+                "GET",
+                url,
+                auth=HTTPBasicAuth(credentials.get("cloudcti_username"), credentials.get("cloudcti_password")),
+                headers=headers
+            )
         _logger.info("Response ---- %s", response.text)
         # ToDo : This should be modified based on real response
         if response.status_code in (400, 401, 403, 403, 500):
