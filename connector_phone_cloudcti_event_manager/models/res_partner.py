@@ -33,9 +33,8 @@ class ResPartner(models.Model):
     def _get_cloudcti_credentials(self):
         user = self.env.user
         company_id = user.company_id
-        if not company_id.cloudcti_url or \
-            not user.cloudcti_token:
-            raise UserError(_("Please configure CloudCTI URL in Company Setting and Token in User"))
+        if not company_id.cloudcti_url:
+            raise UserError(_("Please configure CloudCTI URL in Company Setting."))
         return {'server_address': company_id.cloudcti_url,
                 'token': user.cloudcti_token,
                 'cloudcti_username': user.cloudcti_username,

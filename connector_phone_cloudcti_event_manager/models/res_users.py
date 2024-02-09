@@ -15,7 +15,8 @@ class ResUsers(models.Model):
     token_expiration_time = fields.Datetime("Expiration Time")
 
     def generate_cloudcti_access_token(self):
-        auth_token_url = "https://api.cloudcti.nl/api/v2/oauth/token"
+        credentials = self.partner_id._get_cloudcti_credentials()
+        auth_token_url = credentials['server_address'] + "/oauth/token" 
         token_data = {
             "grant_type": "account_credentials",
             "cloudcti_username": self.cloudcti_username,
