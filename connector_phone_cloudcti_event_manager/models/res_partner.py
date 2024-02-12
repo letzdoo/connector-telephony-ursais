@@ -41,7 +41,9 @@ class ResPartner(models.Model):
             expired = True
         else:
             expired = False
-        return {'server_address': company_id.cloudcti_url,
+        return {'base_address': company_id.cloudcti_base_url,
+                'sign_address: user.cloudcti_signin_url,
+                'out_address: user.cloudcti_out_url,
                 'token': user.cloudcti_token,
                 'expired': expired,
                 'cloudcti_username': user.cloudcti_username,
@@ -66,8 +68,11 @@ class ResPartner(models.Model):
         # For Outgoing Calls
         if self == {}:
             raise UserError(_("Bad Partner Record"))
+
+        # get token
         credentials = self._get_cloudcti_credentials()
 
+        # if token is expired, get a new one
         if credentials['expired']:
             self.env.user.generate_cloudcti_access_token()
             credentials = self._get_cloudcti_credentials()
@@ -79,19 +84,21 @@ class ResPartner(models.Model):
         }
         payload = simplejson.dumps(data)
 
-        # TO-DO Balaji
+        # use token credentials to connect
         if credentials['token'] and not credentials['expired']:
             headers = {"content-type": "application/json", "token":self.env.user.token, 'Accept': 'text/plain'}
-            url = credentials['server_address'] + "/makecall"
+            url = credentials['out_address'] + "/makecall"
             response = requests.request(
-                "GET",
+                "POST",
                 url,
                 data=payload,
                 headers=headers
             )
+
+        # not secure fallback to basic authentication
         else:
             headers = {"content-type": "application/json"}
-            url = credentials['server_address'] + "/makecall/" + number
+            url = credentials['base_address'] + "/makecall/" + number
             response = requests.request(
                 "GET",
                 url,
@@ -99,7 +106,7 @@ class ResPartner(models.Model):
                 headers=headers
             )
         _logger.info("Response ---- %s", response.text)
-        # ToDo : This should be modified based on real response
+        # error in response
         if response.status_code in (400, 401, 403, 403, 500):
             error_msg = _(
                 "Request Call failed with Status %s.\n\n"

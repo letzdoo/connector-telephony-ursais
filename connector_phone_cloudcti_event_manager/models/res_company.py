@@ -4,7 +4,9 @@ from odoo import fields, models
 class ResCompany(models.Model):
     _inherit = "res.company"
 
-    cloudcti_url = fields.Char("CloudCTI Base URL", default="https://api.cloudcti.nl/api/v2")
+    cloudcti_base_url = fields.Char("CloudCTI Base URL", default="https://api.cloudcti.nl/api/v2")
+    cloudcti_signin_url = fields.Char("CloudCTI Signin URL", default="https://signin-va.cloudcti.nl/signin/api")
+    cloudcti_out_url = fields.Char("CloudCTI Signin URL", default="https://useraccount.cloudcti.nl/phone/api/callcontrol")
     cloudcti_popup_time = fields.Integer(string="Popup Time (Sec)", default=5)
 
     def get_popup_time(self):

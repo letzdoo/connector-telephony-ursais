@@ -16,7 +16,7 @@ class ResUsers(models.Model):
 
     def generate_cloudcti_access_token(self):
         credentials = self.partner_id._get_cloudcti_credentials()
-        auth_token_url = credentials['server_address'] + "/oauth/token" 
+        auth_token_url = credentials['signin_address'] + "/token" 
         token_data = {
             "grant_type": "account_credentials",
             "cloudcti_username": self.cloudcti_username,

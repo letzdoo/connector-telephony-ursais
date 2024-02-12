@@ -131,14 +131,13 @@ class CloudCTIVOIP(http.Controller):
                             calltype="Incoming Call",
                         )
                     )
-            else:
-                return Response(json.dumps({}))
-
+                else:
+                    return Response(json.dumps({}))
             else:
                 cdr = (
                     request.env["phone.cdr"]
                     .sudo()
-                    .search([("guid", "=", guid], limit=1)
+                    .search([("guid", "=", guid)], limit=1)
                 )
                 return_date = self.convert_into_correct_timezone(endtime, user)
                 payload = { "state":map_state(state,cdr.state),"call_end_time":return_date, "call_duration": duration}
