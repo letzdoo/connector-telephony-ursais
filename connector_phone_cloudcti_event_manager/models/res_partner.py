@@ -42,8 +42,8 @@ class ResPartner(models.Model):
         else:
             expired = False
         return {'base_address': company_id.cloudcti_base_url,
-                'sign_address: user.cloudcti_signin_url,
-                'out_address: user.cloudcti_out_url,
+                'sign_address: company_id.cloudcti_signin_url,
+                'out_address: company_id.cloudcti_out_url,
                 'token': user.cloudcti_token,
                 'expired': expired,
                 'cloudcti_username': user.cloudcti_username,
