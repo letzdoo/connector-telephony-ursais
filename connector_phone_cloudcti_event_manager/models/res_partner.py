@@ -34,10 +34,10 @@ class ResPartner(models.Model):
     def _get_cloudcti_credentials(self):
         user = self.env.user
         company_id = user.company_id
-        if not company_id.cloudcti_url:
-            raise UserError(_("Please configure CloudCTI URL in Company Setting."))
+        if not all([company_id.cloudcti_base_url, company_id.cloudcti_signin_url, company_id.cloudcti_out_url]):
+            raise UserError(_("Please configure CloudCTI URLs in Company Setting."))
 
-        if str(datetime.datetime.now()) > user.token_expiration_date:
+        if str(datetime.datetime.now()) > (user.token_expiration_time or str(datetime.datetime.now())):
             expired = True
         else:
             expired = False
@@ -46,8 +46,8 @@ class ResPartner(models.Model):
                 'out_address': company_id.cloudcti_out_url,
                 'token': user.cloudcti_token,
                 'expired': expired,
-                'cloudcti_username': user.cloudcti_username,
-                'cloudcti_password': user.cloudcti_password,
+                'cloudcti_username': user.phone,
+                'cloudcti_password': user.phone_password,
         }
 
     @api.multi

@@ -9,23 +9,22 @@ from odoo.exceptions import UserError
 class ResUsers(models.Model):
     _inherit = "res.users"
 
-    cloudcti_username = fields.Char()
-    cloudcti_password = fields.Char()
     cloudcti_token = fields.Char("Token")
     token_expiration_time = fields.Datetime("Expiration Time")
 
     def generate_cloudcti_access_token(self):
+        import pdb;pdb.set_trace()
         credentials = self.partner_id._get_cloudcti_credentials()
-        auth_token_url = credentials['signin_address'] + "/token" 
+        auth_token_url = credentials['sign_address'] + "/token" 
         token_data = {
             "grant_type": "account_credentials",
-            "cloudcti_username": self.cloudcti_username,
-            "cloudcti_password": self.cloudcti_password,
+            "cloudcti_username": self.phone,
+            "cloudcti_password": self.phone_password,
         }
         try:
             response = requests.post(
                 auth_token_url,
-                auth=(self.cloudcti_username, self.cloudcti_password),
+                auth=(self.phone, self.phone_password),
                 data=token_data,
                 timeout=30,
             )
