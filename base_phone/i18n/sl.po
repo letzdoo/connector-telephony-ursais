@@ -43,13 +43,6 @@ msgid "Click2dial successfull"
 msgstr "Click2dial uspešen"
 
 #. module: base_phone
-#. openerp-web
-#: code:addons/base_phone/static/src/js/phone_widget.js:0
-#, fuzzy, python-format
-msgid "Click2dial to %s"
-msgstr "Click2dial zagnan"
-
-#. module: base_phone
 #: model_terms:ir.ui.view,arch_db:base_phone.number_not_found_form
 #: model_terms:ir.ui.view,arch_db:base_phone.reformat_all_phonenumbers_form
 msgid "Close"
@@ -224,13 +217,6 @@ msgstr "Številka ni najdena"
 #: model_terms:ir.ui.view,arch_db:base_phone.number_not_found_form
 msgid "Number converted to international format:"
 msgstr "Številka pretvorjena v mednarodni format:"
-
-#. module: base_phone
-#. openerp-web
-#: code:addons/base_phone/static/src/js/phone_widget.js:0
-#, fuzzy, python-format
-msgid "Number dialed: %s"
-msgstr "Klicana številka:"
 
 #. module: base_phone
 #: model:ir.model,name:base_phone.model_number_not_found
