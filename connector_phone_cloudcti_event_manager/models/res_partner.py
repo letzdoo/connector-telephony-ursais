@@ -1,6 +1,7 @@
 import logging
 import simplejson
 import datetime
+import re
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -37,7 +38,7 @@ class ResPartner(models.Model):
         if not all([company_id.cloudcti_base_url, company_id.cloudcti_signin_url, company_id.cloudcti_out_url]):
             raise UserError(_("Please configure CloudCTI URLs in Company Setting."))
 
-        if str(datetime.datetime.now()) > (user.token_expiration_time or str(datetime.datetime.now())):
+        if datetime.datetime.now() > (user.token_expiration_time or datetime.datetime.now()):
             expired = True
         else:
             expired = False
@@ -46,7 +47,7 @@ class ResPartner(models.Model):
                 'out_address': company_id.cloudcti_out_url,
                 'token': user.cloudcti_token,
                 'expired': expired,
-                'cloudcti_username': user.phone,
+                'cloudcti_username': re.sub(r'\D', '', user.phone),
                 'cloudcti_password': user.phone_password,
         }
 
@@ -77,17 +78,18 @@ class ResPartner(models.Model):
             self.env.user.generate_cloudcti_access_token()
             credentials = self._get_cloudcti_credentials()
 
-        number = self.called_for_mobile and self.mobile or self.phone  # Fetched from partner
+        number = re.sub(r'\D', '', self.called_for_mobile and self.mobile or self.phone)  # Fetched from partner
 
         data = {
             "Number": number,
         }
+
         payload = simplejson.dumps(data)
 
         # use token credentials to connect
-        if credentials['token'] and not credentials['expired']:
-            headers = {"content-type": "application/json", "token":self.env.user.token, 'Accept': 'text/plain'}
-            url = credentials['out_address'] + "/makecall"
+        if credentials.get('token') and not credentials.get('expired'):
+            headers = {"content-type": "application/json", "Authorization":"Bearer " + credentials.get("token"), 'Accept': 'text/plain'}
+            url = credentials.get("out_address") + "/makecall"
             response = requests.request(
                 "POST",
                 url,

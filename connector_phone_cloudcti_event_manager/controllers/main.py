@@ -3,6 +3,7 @@ import json
 from odoo import http
 from odoo.http import request, Response
 import pytz
+import phonenumbers
 
 from datetime import datetime
 
@@ -42,16 +43,19 @@ class CloudCTIVOIP(http.Controller):
             outstate = 'on_hold'
 
     def create_cdr_record(self, user, payload):
-        return_date = self.convert_into_correct_timezone(payload.get("starttime"), user)
+        startdate = False
+        if payload.get('starttime'):
+         startdate = self.convert_into_correct_timezone(payload.get("starttime"), user)
         vals = {
             "guid": payload.get("callid"),
-            "inbound_flag": payload.get("direction"),
+            "inbound_flag": payload.get("direction").lower(),
             "called_id": payload.get("calledid"),
             "called_id_name": user.name,
             "caller_id": payload.get("callerid"),
-            "call_start_time": return_date,
-            "state": map_state(payload.get("state")),
+            "call_start_time": startdate,
+            "state": self.map_state(payload.get("state")),
             "user_id": user.id,
+            "partner_ids":payload.get("partner_ids")
         }
         return request.env["phone.cdr"].sudo().create(vals)
 
@@ -66,11 +70,12 @@ class CloudCTIVOIP(http.Controller):
         return return_date
 
     @http.route(
-        "/CloudCTI/statusChange", type="http", auth="public", website=True, sitemap=False
+        "/cloudCTI/statusChange", type="json", auth="public" 
     )
     def cloudcti_status_change(self, *args, **kw):
+
         # check for data
-        if len(**kw):
+        if kw:
             guid = kw.get("CallId")
             callednumber = kw.get("CalledNumber")
             callernumber = kw.get("CallerNumber")
@@ -82,7 +87,8 @@ class CloudCTIVOIP(http.Controller):
         else:
             return Response(json.dumps({}))
 
-        if direction == "inbound":
+        phone = other = False
+        if direction == "Outbound":
            phone = callednumber 
            other = callernumber
            if state == "ringing":
@@ -91,25 +97,18 @@ class CloudCTIVOIP(http.Controller):
            else:
                create = False
                update = True
-        elif direction == "outbound":
-           phone = callernumber 
-           other = callednumber
-           if state == "ringing":
-               create = True
-               update = False
-           else:
-               create = False
-               update = True
-        user = (
-            request.env["res.users"]
-            .sudo()
-            .search(
-                [
-                    ("phone", "=", kw.get("phone")),
-                ],
-                limit=1,
-            )
-        )
+        elif direction == "Inbound":
+            phone = callernumber 
+            other = callednumber
+            if state == "ringing":
+                create = True
+                update = False
+            else:
+                create = False
+                update = True
+        phone = phonenumbers.format_number(phonenumbers.parse(phone, 'US'), phonenumbers.PhoneNumberFormat.NATIONAL)
+        other = phonenumbers.format_number(phonenumbers.parse(other, 'US'), phonenumbers.PhoneNumberFormat.NATIONAL)
+        user = request.env["res.users"].sudo().search([("phone", "=", phone)], limit=1)
         if not user:
             return Response(json.dumps({'message': 'User Not found.', 'status': 404}))
         else:
@@ -120,13 +119,14 @@ class CloudCTIVOIP(http.Controller):
             )
             if create:
                 payload = { "callid": guid, "callerid":other, "calledid":phone, "direction":direction, "state":state,"starttime":starttime, "partner_ids":[(6,0, partner.ids)]}
+                print(payload)
                 cdr = self.create_cdr_record(user, payload)
-                if direction == "inbound" and cdr:
+                if direction.lower() == "inbound" and cdr:
                     return (
                         request.env["phone.common"]
                         .sudo()
                         .incall_notify_by_login(
-                            kw.get("CallerID"),
+                            other,
                             [user.login],
                             calltype="Incoming Call",
                         )
@@ -139,7 +139,9 @@ class CloudCTIVOIP(http.Controller):
                     .sudo()
                     .search([("guid", "=", guid)], limit=1)
                 )
-                return_date = self.convert_into_correct_timezone(endtime, user)
-                payload = { "state":map_state(state,cdr.state),"call_end_time":return_date, "call_duration": duration}
-                cdr.sudo().write(cdr_vals)
+                enddate = False
+                if endtime:
+                    enddate = self.convert_into_correct_timezone(endtime, user)
+                payload = { "state":self.map_state(state,cdr.state),"call_end_time":enddate, "call_duration": duration}
+                cdr.sudo().write(payload)
         return Response(json.dumps({}))

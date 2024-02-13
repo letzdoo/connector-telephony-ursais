@@ -1,8 +1,9 @@
 import requests
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from requests.auth import HTTPBasicAuth
 
-from odoo import _, api, fields, models
+from odoo import models, fields, _
 from odoo.exceptions import UserError
 
 
@@ -13,24 +14,17 @@ class ResUsers(models.Model):
     token_expiration_time = fields.Datetime("Expiration Time")
 
     def generate_cloudcti_access_token(self):
-        import pdb;pdb.set_trace()
         credentials = self.partner_id._get_cloudcti_credentials()
         auth_token_url = credentials['sign_address'] + "/token" 
-        token_data = {
-            "grant_type": "account_credentials",
-            "cloudcti_username": self.phone,
-            "cloudcti_password": self.phone_password,
-        }
         try:
-            response = requests.post(
-                auth_token_url,
-                auth=(self.phone, self.phone_password),
-                data=token_data,
-                timeout=30,
+            headers = {"content-type": "application/json"}
+            response = requests.get(
+                url=auth_token_url,
+                auth=HTTPBasicAuth(credentials.get("cloudcti_username"), credentials.get("cloudcti_password")),
             )
             response.raise_for_status()
             response_data = response.json()
-            access_token = response_data["access_token"]
+            access_token = response_data["SecurityToken"]
         except (
             requests.exceptions.HTTPError,
             requests.exceptions.RequestException,
