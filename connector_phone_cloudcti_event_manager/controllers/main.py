@@ -94,16 +94,17 @@ class CloudCTIVOIP(http.Controller):
             starttime = kw.get("StartTime") or False
             endtime = kw.get("EndTime") or False
             duration = kw.get("CallDuration") or 0.0
+            _logger.info("Webhook ---- %s", kw)
         else:
             return Response(json.dumps({}))
 
         phone = other = False
-        if direction == "Outbound":
+        if direction == "inbound":
             phone = callednumber
             other = callernumber
             create = True if state == "ringing" else False
             update = False if state == "ringing" else True
-        elif direction == "Inbound":
+        elif direction == "outbound":
             phone = callernumber
             other = callednumber
             create = True if state == "ringing" else False
