@@ -1,5 +1,6 @@
 import logging
 import json
+import re
 
 from odoo import http
 from odoo.http import request, Response
@@ -39,7 +40,7 @@ class CloudCTIVOIP(http.Controller):
             outstate = 'connected'
         elif instate == 'ended':
             if currentstate == 'offering':
-                outstate = 'missed'
+                outstate = 'mhttpissed'
             elif currentstate == 'connected':
                 outstate = 'completed'
         else:
@@ -67,6 +68,8 @@ class CloudCTIVOIP(http.Controller):
         return request.env["phone.cdr"].sudo().create(vals)
 
     def convert_into_correct_timezone(self, record_date, user):
+        #CloudCTI provides date in UTC, so no conversion needed.
+        return re.sub(r"[TtzZ]"," ", record_date)
         record_date = datetime.strptime(record_date, '%Y-%m-%d %H:%M:%S')
         timezone = request.env.context.get('tz', False) or user.partner_id.tz
         return_date = None
