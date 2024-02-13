@@ -34,13 +34,14 @@ _logger = logging.getLogger(__name__)
 class CloudCTIVOIP(http.Controller):
 
     def map_state(self, instate, currentstate=False):
+        outstate = 'on_hold'
         if instate == 'ringing':
             outstate = 'offering'
         elif instate == 'answered':
             outstate = 'connected'
         elif instate == 'ended':
             if currentstate == 'offering':
-                outstate = 'mhttpissed'
+                outstate = 'missed'
             elif currentstate == 'connected':
                 outstate = 'completed'
         else:
@@ -83,7 +84,6 @@ class CloudCTIVOIP(http.Controller):
         "/cloudCTI/statusChange", type="json", auth="public"
     )
     def cloudcti_status_change(self, *args, **kw):
-
         # check for data
         if kw:
             guid = kw.get("CallId")
