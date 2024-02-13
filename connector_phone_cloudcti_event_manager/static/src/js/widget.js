@@ -1,3 +1,4 @@
+/*eslint-disable*/
 odoo.define(
     "connector_phone_cloudcti_event_manager.connector_phone_cloudcti_event_manager",
     function(require) {

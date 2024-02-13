@@ -5,6 +5,7 @@
     <record id="partner_form_outgoing_call_form_view_cloudcti" model="ir.ui.view">
         <field name="name">res.partner.form.outgoing.call</field>
         <field name="model">res.partner</field>
+        <field name="priority" eval="99"/>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='phone']" position="replace">

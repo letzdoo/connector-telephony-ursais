@@ -13,6 +13,7 @@ from odoo.addons.web.controllers.main import clean_action
 
 _logger = logging.getLogger(__name__)
 
+
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
@@ -35,21 +36,28 @@ class ResPartner(models.Model):
     def _get_cloudcti_credentials(self):
         user = self.env.user
         company_id = user.company_id
-        if not all([company_id.cloudcti_base_url, company_id.cloudcti_signin_url, company_id.cloudcti_out_url]):
+        if not all([
+            company_id.cloudcti_base_url,
+            company_id.cloudcti_signin_url,
+            company_id.cloudcti_out_url
+        ]):
             raise UserError(_("Please configure CloudCTI URLs in Company Setting."))
 
-        if datetime.datetime.now() > (user.token_expiration_time or datetime.datetime.now()):
+        if datetime.datetime.now() > (
+            user.token_expiration_time or datetime.datetime.now()
+        ):
             expired = True
         else:
             expired = False
-        return {'base_address': company_id.cloudcti_base_url,
-                'sign_address': company_id.cloudcti_signin_url,
-                'out_address': company_id.cloudcti_out_url,
-                'token': user.cloudcti_token,
-                'expired': expired,
-                'cloudcti_username': re.sub(r'\D', '', user.phone),
-                'cloudcti_password': user.phone_password,
-        }
+        return {
+            'base_address': company_id.cloudcti_base_url,
+            'sign_address': company_id.cloudcti_signin_url,
+            'out_address': company_id.cloudcti_out_url,
+            'token': user.cloudcti_token,
+            'expired': expired,
+            'cloudcti_username': re.sub(r'\D', '', user.phone),
+            'cloudcti_password': user.phone_password,
+            }
 
     @api.multi
     def cloudcti_open_outgoing_notification(self):
@@ -78,7 +86,8 @@ class ResPartner(models.Model):
             self.env.user.generate_cloudcti_access_token()
             credentials = self._get_cloudcti_credentials()
 
-        number = re.sub(r'\D', '', self.called_for_mobile and self.mobile or self.phone)  # Fetched from partner
+        # Fetched from partner
+        number = re.sub(r'\D', '', self.called_for_mobile and self.mobile or self.phone)
 
         data = {
             "Number": number,
@@ -88,7 +97,11 @@ class ResPartner(models.Model):
 
         # use token credentials to connect
         if credentials.get('token') and not credentials.get('expired'):
-            headers = {"content-type": "application/json", "Authorization":"Bearer " + credentials.get("token"), 'Accept': 'text/plain'}
+            headers = {
+                "content-type": "application/json",
+                "Authorization": "Bearer " + credentials.get("token"),
+                'Accept': 'text/plain'
+            }
             url = credentials.get("out_address") + "/makecall"
             response = requests.request(
                 "POST",
@@ -104,7 +117,10 @@ class ResPartner(models.Model):
             response = requests.request(
                 "GET",
                 url,
-                auth=HTTPBasicAuth(credentials.get("cloudcti_username"), credentials.get("cloudcti_password")),
+                auth=HTTPBasicAuth(
+                    credentials.get("cloudcti_username"),
+                    credentials.get("cloudcti_password")
+                ),
                 headers=headers
             )
         _logger.info("Response ---- %s", response.text)

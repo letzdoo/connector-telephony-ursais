@@ -15,12 +15,14 @@ class ResUsers(models.Model):
 
     def generate_cloudcti_access_token(self):
         credentials = self.partner_id._get_cloudcti_credentials()
-        auth_token_url = credentials['sign_address'] + "/token" 
+        auth_token_url = credentials['sign_address'] + "/token"
         try:
-            headers = {"content-type": "application/json"}
             response = requests.get(
                 url=auth_token_url,
-                auth=HTTPBasicAuth(credentials.get("cloudcti_username"), credentials.get("cloudcti_password")),
+                auth=HTTPBasicAuth(
+                    credentials.get("cloudcti_username"),
+                    credentials.get("cloudcti_password")
+                ),
             )
             response.raise_for_status()
             response_data = response.json()

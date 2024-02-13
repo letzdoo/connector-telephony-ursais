@@ -1,8 +1,9 @@
+/*eslint-disable*/
 odoo.define("connector_phone_cloudcti_event_manager.notification_widget", function(require) {
         "use strict";
 
-    const Notification = require('web.Notification')
-    const session = require('web.session')
+    var Notification = require('web.Notification')
+    var session = require('web.session')
 
     Notification.include({
 

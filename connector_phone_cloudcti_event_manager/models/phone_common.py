@@ -2,8 +2,6 @@ import logging
 
 from odoo import _, api, models
 
-from odoo.addons.web.controllers.main import clean_action
-
 _logger = logging.getLogger(__name__)
 
 
@@ -49,7 +47,7 @@ class PhoneCommon(models.AbstractModel):
         response = False
         if partners:
             user = self.env["res.users"].sudo().search([("login", "in", login_list)])
-            if len(partners.ids)>1:
+            if len(partners.ids) > 1:
                 name = "Multiple Records"
             else:
                 name = partners[0].name
