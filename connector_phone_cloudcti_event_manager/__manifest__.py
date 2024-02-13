@@ -11,6 +11,7 @@
         "views/res_company.xml",
         "views/res_users_view.xml",
         "views/res_partner_views.xml",
+        "views/phone_cdr_view.xml",
     ],
     "qweb": ["static/src/xml/widget.xml"],
     "license": "AGPL-3",
