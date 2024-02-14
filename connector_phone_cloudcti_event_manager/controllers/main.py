@@ -129,14 +129,14 @@ class CloudCTIVOIP(http.Controller):
             if create:
                 payload = {
                     "callid": guid,
-                    "callerid": other,
-                    "calledid": phone,
+                    "callerid": phone if direction=="outbound" else other,
+                    "calledid": phone if direction=="inbound" else other,
                     "direction": direction,
                     "state": state,
                     "starttime": starttime,
                     "partner_ids": [(6, 0, partner.ids)]
                 }
-                _logger.info("Payload ---- %s", payload)
+                _logger.info("CDR Payload ---- %s", payload)
                 cdr = self.create_cdr_record(user, payload)
                 if direction.lower() == "inbound" and cdr:
                     return (
