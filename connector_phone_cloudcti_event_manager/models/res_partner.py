@@ -33,8 +33,7 @@ class ResPartner(models.Model):
                 partner.called_for_mobile = False
 
     @api.multi
-    def _get_cloudcti_credentials(self):
-        user = self.env.user
+    def _get_cloudcti_credentials(self, user):
         company_id = user.company_id
         if not all([
             company_id.cloudcti_base_url,
@@ -79,12 +78,12 @@ class ResPartner(models.Model):
             raise UserError(_("Bad Partner Record"))
 
         # get token
-        credentials = self._get_cloudcti_credentials()
+        credentials = self._get_cloudcti_credentials(self.env.user)
 
         # if token is expired, get a new one
         if credentials['expired']:
             self.env.user.generate_cloudcti_access_token()
-            credentials = self._get_cloudcti_credentials()
+            credentials = self._get_cloudcti_credentials(self.env.user)
 
         # Fetched from partner
         number = re.sub(r'\D', '', self.called_for_mobile and self.mobile or self.phone)
