@@ -36,5 +36,9 @@ class ResUsers(models.Model):
                 raise UserError(
                     _("Error! \n Could not retrive token from CloudCTI. %s") % (err)
                 ) from err
-            user.cloudcti_token = access_token
-            user.token_expiration_time = datetime.now() + relativedelta(days=1)
+            user.sudo().write(
+                {
+                    "cloudcti_token": access_token,
+                    "token_expiration_time": datetime.now() + relativedelta(days=1)
+                }
+            )
