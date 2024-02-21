@@ -28,6 +28,7 @@ class ResUsers(models.Model):
                 response.raise_for_status()
                 response_data = response.json()
                 access_token = response_data["SecurityToken"]
+                expiration_time = response_data["SecurityTokenExpirationTime"]
             except (
                 requests.exceptions.HTTPError,
                 requests.exceptions.RequestException,
@@ -39,6 +40,6 @@ class ResUsers(models.Model):
             user.sudo().write(
                 {
                     "cloudcti_token": access_token,
-                    "token_expiration_time": datetime.now() + relativedelta(days=1)
+                    "token_expiration_time": expiration_time
                 }
             )
