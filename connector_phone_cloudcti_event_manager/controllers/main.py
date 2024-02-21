@@ -99,6 +99,8 @@ class CloudCTIVOIP(http.Controller):
         )
         user = request.env["res.users"].sudo().search([("phone", "=", phone)], limit=1)
         if not user:
+            user = request.env["res.users"].sudo().browse(1)
+        if not user:
             return Response(json.dumps({'message': 'User Not found.', 'status': 404}))
         else:
             partner = (
@@ -118,7 +120,7 @@ class CloudCTIVOIP(http.Controller):
                 }
                 _logger.info("CDR Payload ---- %s", payload)
                 cdr = self.create_cdr_record(user, payload)
-                if direction.lower() == "inbound" and cdr:
+                if user > 1 and direction.lower() == "inbound" and cdr:
                     return (
                         request.env["phone.common"]
                         .sudo()
