@@ -97,7 +97,6 @@ class CloudCTIVOIP(http.Controller):
             _logger.info("Webhook ---- %s", kw)
         else:
             return Response(json.dumps({}))
-
         phone = other = False
         if direction == "inbound":
             phone = callednumber

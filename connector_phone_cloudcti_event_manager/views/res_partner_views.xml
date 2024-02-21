@@ -36,6 +36,56 @@
                     />
                 </div>
             </xpath>
+	    <xpath expr="/form/sheet/notebook/page/field[@name='child_ids']/form/sheet/group/group[2]/field[@name='phone']" position="replace">
+		<label for="phone"/>
+                <div class="o_row">
+                    <field name="phone" widget="mask" data-inputmask="'mask': '(999) 999-9999'"/>
+                    <button
+                        type="object"
+                        name="cloudcti_open_outgoing_notification"
+                        class="btn-sm btn-link mb4 fa fa-phone"
+                        aria-label="Outgoing Call"
+                        title="Outgoing Call"
+                        attrs="{'invisible':[('phone', '=', False)]}"
+                        context="{'phone_partner': 1}"
+                    />
+                </div>
+	    </xpath>
+	    <xpath expr="/form/sheet/notebook/page/field[@name='child_ids']/form/sheet/group/group[2]/field[@name='mobile']" position="replace">
+		<label for="mobile"/>
+                <div class="o_row">
+                    <field name="mobile" widget="mask" data-inputmask="'mask': '(999) 999-9999'"/>
+                    <button
+                        type="object"
+                        name="cloudcti_open_outgoing_notification"
+                        class="btn-sm btn-link mb4 fa fa-phone"
+                        aria-label="Outgoing Call"
+                        title="Outgoing Call"
+                        attrs="{'invisible':[('mobile', '=', False)]}"
+                        context="{'mobile_partner': 1}"
+                    />
+                </div>
+	    </xpath>
+        </field>
+    </record>
+
+    <record id="partner_form_outgoing_call_tree_view_cloudcti" model="ir.ui.view">
+        <field name="name">res.partner.tree.outgoing.call</field>
+        <field name="model">res.partner</field>
+        <field name="priority" eval="99"/>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone']" position="after">
+                    <button
+                        type="object"
+                        name="cloudcti_open_outgoing_notification"
+                        class="btn-sm btn-link mb4 fa fa-phone"
+                        aria-label="Outgoing Call"
+                        title="Outgoing Call"
+                        attrs="{'invisible':[('phone', '=', False)]}"
+                        context="{'phone_partner': 1}"
+                    />
+            </xpath>
         </field>
     </record>
 

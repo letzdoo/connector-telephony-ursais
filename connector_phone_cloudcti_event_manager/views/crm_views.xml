@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_cloud_cti" model="ir.ui.view">
+        <field name="name">crm.lead.cloud.cti</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_form_view_oppor"/>
+        <field name="arch" type="xml">
+	    <xpath expr="//field[@name='partner_address_phone']" position="replace">
+                <label for="partner_address_phone"/>
+                <div class="o_row">
+                    <field name="partner_address_phone" widget="mask" data-inputmask="'mask': '(999) 999-9999'"/>
+                    <button
+                        type="object"
+                        name="cloudcti_open_outgoing_notification"
+                        class="btn-sm btn-link mb4 fa fa-phone"
+                        aria-label="Outgoing Call"
+                        title="Outgoing Call"
+                        attrs="{'invisible':[('partner_address_phone', '=', False)]}"
+                        context="{'phone_partner': 1, 'call_no': partner_address_phone}"
+                    />
+                </div>
+            </xpath>
+	    <xpath expr="//field[@name='mobile']" position="replace">
+                <label for="mobile"/>
+                <div class="o_row">
+                    <field name="mobile" widget="mask" data-inputmask="'mask': '(999) 999-9999'"/>
+                    <button
+                        type="object"
+                        name="cloudcti_open_outgoing_notification"
+                        class="btn-sm btn-link mb4 fa fa-phone"
+                        aria-label="Outgoing Call"
+                        title="Outgoing Call"
+                        attrs="{'invisible':[('mobile', '=', False)]}"
+                        context="{'mobile_partner': 1, 'call_no':mobile}"
+                    />
+                </div>
+            </xpath>
+        </field>   
+    </record>
+</odoo>
