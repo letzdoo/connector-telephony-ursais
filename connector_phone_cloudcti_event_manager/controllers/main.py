@@ -10,27 +10,6 @@ import phonenumbers
 from datetime import datetime
 _logger = logging.getLogger(__name__)
 
-'''
-    #CDR Fields for local reference
-    call_start_time = fields.Datetime("Call start time")
-    call_end_time = fields.Datetime("Call end time")
-    call_duration = fields.Char("Duration")
-    caller_id = fields.Char("Caller ID")
-    called_id = fields.Char("Called ID")
-    state = fields.Selection(
-        [
-            ("offering", "Offering"),
-            ("connected", "Connected"),
-            ("missed", "Missed"),
-            ("completed", "Completed"),
-            ("on_hold", "On Hold"),
-        ],
-        string="Status",
-        default="offering",
-    )
-'''
-
-
 class CloudCTIVOIP(http.Controller):
 
     def map_state(self, instate, currentstate=False):
@@ -102,11 +81,13 @@ class CloudCTIVOIP(http.Controller):
             phone = callednumber
             other = callernumber
             create = True if state == "ringing" else False
+            check = True if state == "answered" else False
             update = False if state == "ringing" else True
         elif direction == "outbound":
             phone = callernumber
             other = callednumber
             create = True if state == "ringing" else False
+            check = True if state == "answered" else False
             update = False if state == "ringing" else True
         phone = phonenumbers.format_number(
             phonenumbers.parse(phone, 'US'),
@@ -155,6 +136,20 @@ class CloudCTIVOIP(http.Controller):
                     .sudo()
                     .search([("guid", "=", guid)], limit=1)
                 )
+                # need to check and create record
+                if check and not cdr:
+                    payload = {
+                        "callid": guid,
+                        "callerid": phone if direction=="outbound" else other,
+                        "calledid": phone if direction=="inbound" else other,
+                        "direction": direction,
+                        "state": state,
+                        "starttime": starttime,
+                        "partner_ids": [(6, 0, partner.ids)]
+                    }
+                    _logger.info("CDR Payload ---- %s", payload)
+                    cdr = self.create_cdr_record(user, payload)
+
                 enddate = False
                 if endtime:
                     enddate = self.convert_into_correct_timezone(endtime, user)
