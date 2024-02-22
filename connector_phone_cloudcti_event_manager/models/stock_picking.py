@@ -37,7 +37,7 @@ class StockPicking(models.Model):
                     "title": _("Outgoing Call to %s" % called_id),
                     "action_link_name": "action_link_name",
                     "Outnotification": "OutGoingNotification",
-                    "id": self.id,
+                    "id": partner[0].id,
                 }
                 self.env["bus.bus"].sendone(channel, bus_message)
 
