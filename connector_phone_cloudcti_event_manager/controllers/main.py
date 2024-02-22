@@ -120,6 +120,7 @@ class CloudCTIVOIP(http.Controller):
                 }
                 _logger.info("CDR Payload ---- %s", payload)
                 cdr = self.create_cdr_record(user, payload)
+                # if it is not external call, and incoming, only cdr is needed, exit here
                 if user > 1 and direction.lower() == "inbound" and cdr:
                     return (
                         request.env["phone.common"]
