@@ -33,6 +33,7 @@
                     />
                 </div>
             </xpath>
+            <!--
 	    <xpath expr="//field[@name='partner_invoice_id']" position="after">
                 <label for="invoice_phone"/>
                 <div class="o_row">
@@ -89,6 +90,7 @@
                     />
                 </div>
             </xpath>
+            -->
         </field>   
     </record>
 </odoo>
