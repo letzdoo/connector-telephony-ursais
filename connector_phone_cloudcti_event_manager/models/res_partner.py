@@ -42,9 +42,7 @@ class ResPartner(models.Model):
         ]):
             raise UserError(_("Please configure CloudCTI URLs in Company Setting."))
 
-        if datetime.datetime.now() > (
-            user.token_expiration_time or datetime.datetime.now()
-        ):
+        if not user.token_expiration_time or (datetime.datetime.now() > user.token_expiration_time):
             expired = True
         else:
             expired = False
@@ -86,7 +84,7 @@ class ResPartner(models.Model):
             credentials = self._get_cloudcti_credentials(self.env.user)
 
         # Fetched from partner
-        number = re.sub(r'\D', '', self.called_for_mobile and self.mobile or self.phone)
+        number = re.sub(r'\D', '', self.sudo().called_for_mobile and self.sudo().mobile or self.sudo().phone)
 
         data = {
             "Number": number,
