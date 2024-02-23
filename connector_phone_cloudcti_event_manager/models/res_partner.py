@@ -38,7 +38,8 @@ class ResPartner(models.Model):
         if not all([
             company_id.cloudcti_base_url,
             company_id.cloudcti_signin_url,
-            company_id.cloudcti_out_url
+            company_id.cloudcti_out_url,
+            company_id.cloudcti_subscription_url
         ]):
             raise UserError(_("Please configure CloudCTI URLs in Company Setting."))
 
@@ -50,6 +51,7 @@ class ResPartner(models.Model):
             'base_address': company_id.cloudcti_base_url,
             'sign_address': company_id.cloudcti_signin_url,
             'out_address': company_id.cloudcti_out_url,
+            'sub_address': company_id.cloudcti_subscription_url,
             'token': user.cloudcti_token,
             'expired': expired,
             'cloudcti_username': re.sub(r'\D', '', user.phone),

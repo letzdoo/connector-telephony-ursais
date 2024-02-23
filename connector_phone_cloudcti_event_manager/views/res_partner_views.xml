@@ -58,7 +58,7 @@
                     <button
                         type="object"
                         name="cloudcti_open_outgoing_notification"
-                        class="btn-sm btn-link mb4 fa fa-phone"
+                        class="btn-sm btn-link mb4 fa fa-mobile"
                         aria-label="Outgoing Call"
                         title="Outgoing Call"
                         attrs="{'invisible':[('mobile', '=', False)]}"

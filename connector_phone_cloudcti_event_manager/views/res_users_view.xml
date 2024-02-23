@@ -10,6 +10,7 @@
             <xpath expr="//group[@name='phone-preferences']" position="after">
                 <group name="cloudcti-preferences" string="CloudCTI Preferences">
                     <field name="cloudcti_token" />
+                    <field name="session_id" />
                     <field name="token_expiration_time" />
                     <button
                         name="generate_cloudcti_access_token"
@@ -31,6 +32,7 @@
             <xpath expr="//group[@name='phone']" position="after">
                 <group name="cloudcti" string="CloudCTI">
                     <field name="cloudcti_token" />
+                    <field name="session_id" />
                     <field name="token_expiration_time" />
                     <button
                         name="generate_cloudcti_access_token"

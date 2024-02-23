@@ -12,11 +12,13 @@ class ResUsers(models.Model):
 
     cloudcti_token = fields.Char("Token")
     token_expiration_time = fields.Datetime("Expiration Time")
+    session_id = fields.Char("Session")
 
     def generate_cloudcti_access_token(self):
         for user in self:
             credentials = user.partner_id._get_cloudcti_credentials(user)
-            auth_token_url = credentials['sign_address'] + "/token"
+            auth_token_url = credentials['sign_address']
+            sub_token_url = credentials['sub_address']
             try:
                 response = requests.get(
                     url=auth_token_url,
@@ -29,6 +31,20 @@ class ResUsers(models.Model):
                 response_data = response.json()
                 access_token = response_data["SecurityToken"]
                 expiration_time = response_data["SecurityTokenExpirationTime"]
+                #subscription
+                if sub_token_url and access_token:
+                    headers = {
+                        "content-type": "application/json",
+                        "Authorization": "Bearer " + access_token,
+                        "Accept": 'text/plain'
+                    }
+                    response = requests.request(
+                        "POST",
+                        sub_token_url,
+                        headers=headers
+                    )
+                    response_data = response.json()
+                    session_id = response_data["SessionId"]
             except (
                 requests.exceptions.HTTPError,
                 requests.exceptions.RequestException,
@@ -40,6 +56,7 @@ class ResUsers(models.Model):
             user.sudo().write(
                 {
                     "cloudcti_token": access_token,
-                    "token_expiration_time": expiration_time
+                    "token_expiration_time": expiration_time,
+                    "session_id": session_id
                 }
             )

@@ -8,13 +8,17 @@ class ResCompany(models.Model):
         "CloudCTI Base URL",
         default="https://api.cloudcti.nl/api/v2"
     )
-    cloudcti_signin_url = fields.Char(
-        "CloudCTI Signin URL",
-        default="https://signin-va.cloudcti.nl/signin/api"
-    )
     cloudcti_out_url = fields.Char(
         "CloudCTI Signin URL",
         default="https://useraccount.cloudcti.nl/phone/api/callcontrol"
+    )
+    cloudcti_signin_url = fields.Char(
+        "CloudCTI Signin URL",
+        default="https://signin-va.cloudcti.nl/signin/api/token"
+    )
+    cloudcti_subscription_url = fields.Char(
+        "CloudCTI Subscription URL",
+        default="https://useraccount.cloudcti.nl/phone/api/Subscription"
     )
     cloudcti_popup_time = fields.Integer(
         string="Popup Time (Sec)",
