@@ -34,5 +34,6 @@ class PhoneCDR(models.Model):
                     "Outnotification": "OutGoingNotification",
                     "id": self.id,
                 }
-                self.env["bus.bus"].sendone(channel, bus_message)
+                #self.env["bus.bus"].sendone(channel, bus_message)
+                partner[0].cloudcti_outgoing_call_notification()
 

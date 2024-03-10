@@ -69,7 +69,8 @@ class ResPartner(models.Model):
             "id": self.id,
         }
         self.update_called_for_values()
-        self.env["bus.bus"].sendone(channel, bus_message)
+        self.cloudcti_outgoing_call_notification()
+        #self.env["bus.bus"].sendone(channel, bus_message)
 
     @api.multi
     def cloudcti_outgoing_call_notification(self):

@@ -43,5 +43,5 @@ class SaleOrder(models.Model):
                     "Outnotification": "OutGoingNotification",
                     "id": partner[0].id,
                 }
-                self.env["bus.bus"].sendone(channel, bus_message)
-
+                #self.env["bus.bus"].sendone(channel, bus_message)
+                partner[0].cloudcti_outgoing_call_notification()
