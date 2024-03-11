@@ -8,6 +8,9 @@
             <field name="call_end_time" position="after">
 	        <field name="call_duration" />
             </field>
+	    <xpath expr="//tree" position="attributes">
+		<attribute name="default_order">write_date desc</attribute>
+	    </xpath>
             <xpath expr="//field[@name='caller_id']" position="after">
                 <button
                         type="object"

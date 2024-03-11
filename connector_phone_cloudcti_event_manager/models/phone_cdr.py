@@ -23,6 +23,9 @@ class PhoneCDR(models.Model):
                 .sudo()
                 .get_record_from_phone_number(other)
             )
+            if len(self.partner_ids):
+                self.partner_ids[0].cloudcti_outgoing_call_notification()
+            '''
             if partner:
                 partner[0].sudo().called_for_phone = True
                 partner[0].sudo().called_for_mobile = False
@@ -35,4 +38,4 @@ class PhoneCDR(models.Model):
                     "id": self.id,
                 }
                 self.env["bus.bus"].sendone(channel, bus_message)
-
+            '''
