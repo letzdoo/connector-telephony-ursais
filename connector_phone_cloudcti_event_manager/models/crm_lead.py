@@ -25,6 +25,8 @@ class CRMLead(models.Model):
                 .sudo()
                 .get_record_from_phone_number(other)
             )
+            self.partner_id.cloudcti_outgoing_call_notification()
+            '''
             if partner:
                 partner[0].sudo().called_for_phone = True if call_phone else False
                 partner[0].sudo().called_for_mobile = True if call_mobile else False
@@ -36,6 +38,5 @@ class CRMLead(models.Model):
                     "Outnotification": "OutGoingNotification",
                     "id": partner[0].id,
                 }
-                #self.env["bus.bus"].sendone(channel, bus_message)
-                partner[0].cloudcti_outgoing_call_notification()
-
+                self.env["bus.bus"].sendone(channel, bus_message)
+            '''
