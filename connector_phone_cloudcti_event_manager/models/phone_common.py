@@ -1,4 +1,5 @@
 import logging
+import re
 
 from odoo import _, api, models
 
@@ -9,6 +10,7 @@ class PhoneCommon(models.AbstractModel):
     _inherit = "phone.common"
 
     def get_record_from_phone_number(self, presented_number):
+        presented_number = ''.join(re.findall(r'(\d+)', presented_number))
         _logger.debug(
             "Call get_name_from_phone_number with number = %s" % presented_number
         )
