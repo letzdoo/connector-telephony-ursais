@@ -18,8 +18,15 @@
         "views/res_users.xml",
         "security/ir.model.access.csv",
         "security/asterisk_security.xml",
-        "views/web_asterisk_click2dial.xml",
     ],
+    'assets': {
+        'web.assets_backend': [
+            'asterisk_click2dial/static/src/js/asterisk_click2dial.js',
+        ],
+        'web._assets_primary_variables': [
+            'asterisk_click2dial/static/src/scss/asterisk.scss',
+        ],
+    },
     "demo": ["demo/asterisk_click2dial_demo.xml"],
     "qweb": ["static/src/xml/asterisk_click2dial.xml"],
     "application": True,
